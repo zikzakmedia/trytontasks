@@ -101,6 +101,7 @@ def install(config=None, module=None, mode=None):
             raise
 
     processes = []
+    i = 0
     for module in modules:
         repo = Modules.get(module, 'repo')
         url = Modules.get(module, 'url')
@@ -133,12 +134,13 @@ def install(config=None, module=None, mode=None):
             repo_path = os.path.join('./src', module)
             if os.path.exists(repo_path):
                 continue
-
-            func = _install_repo
-            print "Adding Module " + t.bold(module) + " to install list"
-            p = Process(target=func, args=(url, module, branch))
-            p.start()
-            processes.append(p)
+            if i < MAX_PROCESSES:
+                func = _install_repo
+                print "Adding Module " + t.bold(module) + " to install list"
+                p = Process(target=func, args=(url, module, branch))
+                p.start()
+                processes.append(p)
+            i += 1
 
     if processes:
         wait_processes(processes)
