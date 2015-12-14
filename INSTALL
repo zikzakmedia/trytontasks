@@ -1,0 +1,16 @@
+Installing trytontasks
+======================
+
+Prerequisites
+-------------
+
+ * Python 2.7 or later (http://www.python.org/)
+ * invoke (https://pypi.python.org/pypi/invoke/)
+ * See requeriments.txt
+
+Installation
+------------
+
+Once you've downloaded and unpacked the trytond_esale source release:
+
+    invoke -l
