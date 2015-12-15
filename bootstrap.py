@@ -5,8 +5,11 @@ from invoke import task, run
 from blessings import Terminal
 from multiprocessing import Process
 from string import Template
+from fabric.api import env, run as frun
+from fabric.context_managers import cd
 from trytontasks_modules import read_config_file
 from trytontasks_scm import hg_clone
+from .utils import clean_modules
 
 MAX_PROCESSES = 25
 t = Terminal()
@@ -28,9 +31,11 @@ def wait_processes(processes, maximum=MAX_PROCESSES, exit_code=None):
 @task
 def easy_install():
     'Regenerate easy-install.pth'
+    Servers = read_config_file('servers.cfg')
+    Modules = read_config_file()
+    Modules = clean_modules(Servers, Modules)
 
-    Config = read_config_file()
-    modules = Config.sections()
+    modules = Modules.sections()
     modules.sort()
 
     paths = []
@@ -56,8 +61,11 @@ def easy_install():
 @task
 def install(config=None, module=None, mode=None):
     'Install Tryton modules (mode dev or production)'
-    Config = read_config_file(config)
-    modules = Config.sections()
+    Servers = read_config_file('servers.cfg')
+    Modules = read_config_file(config)
+    Modules = clean_modules(Servers, Modules)
+
+    modules = Modules.sections()
     modules.sort()
 
     if module:
@@ -68,7 +76,7 @@ def install(config=None, module=None, mode=None):
     else:
         easy_install = True
 
-    def install_repo(url, name, branch='default'):
+    def _install_repo(url, name, branch='default'):
         command = 'pip install -e hg+%s/@%s#egg=%s --no-dependencies' % (url, branch, name)
 
         try:
@@ -94,10 +102,10 @@ def install(config=None, module=None, mode=None):
 
     processes = []
     for module in modules:
-        repo = Config.get(module, 'repo')
-        url = Config.get(module, 'url')
-        path = Config.get(module, 'path')
-        branch = Config.get(module, 'branch')
+        repo = Modules.get(module, 'repo')
+        url = Modules.get(module, 'url')
+        path = Modules.get(module, 'path')
+        branch = Modules.get(module, 'branch')
 
         if mode == 'dev': # dev mode
             repo_path = os.path.join(path, module)
@@ -126,7 +134,7 @@ def install(config=None, module=None, mode=None):
             if os.path.exists(repo_path):
                 continue
 
-            func = install_repo
+            func = _install_repo
             print "Adding Module " + t.bold(module) + " to install list"
             p = Process(target=func, args=(url, module, branch))
             p.start()
@@ -137,3 +145,42 @@ def install(config=None, module=None, mode=None):
 
     if easy_install:
         print t.red("Remember regenerate easy-install.pth")
+
+@task
+def update(server=None, module=None):
+    'Update Tryton modules (hg pull update)'
+    Servers = read_config_file('servers.cfg')
+    servers = Servers.sections()
+
+    Modules = read_config_file()
+    Modules = clean_modules(Servers, Modules)
+
+    modules = Modules.sections()
+    modules.sort()
+    
+    if module:
+        if not module in modules:
+            return
+        modules = [module]
+
+    if server:
+        if not server in servers:
+            return
+        servers = [server]
+
+    def _hg_pull_update(server):
+        try:
+            frun('hg pull -u')
+            return True
+        except:
+            print "%s %s" % (t.red(server), 'Error connection')
+            return False
+
+    for server in servers:
+        env.host_string = "%s" % Servers.get(server, 'server')
+
+        for module in modules:
+            path = '%s/%s' % (Servers.get(server, 'path_modules'), module)
+            with cd(path):
+                if _hg_pull_update(server):
+                    print "Updated " + t.bold(server) + ": "+t.green(module)
