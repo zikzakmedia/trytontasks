@@ -154,10 +154,14 @@ def update(server=None, module=None):
 
     Modules = read_config_file()
     Modules = clean_modules(Servers, Modules)
+    # remove core modules. Updated with "hg upull"
+    Cores = read_config_file('core.cfg')
+    cores = Cores.sections()
+    for core in cores: Modules.remove_section(core)
 
     modules = Modules.sections()
     modules.sort()
-    
+
     if module:
         if not module in modules:
             return
