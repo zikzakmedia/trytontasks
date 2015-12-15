@@ -153,7 +153,7 @@ def update(server=None, module=None):
     servers = Servers.sections()
 
     Modules = read_config_file()
-    Modules = clean_modules(Servers, Modules)
+    Modules = clean_modules(Servers, Modules, update=True)
     # remove core modules. Updated with "hg upull"
     Cores = read_config_file('core.cfg')
     cores = Cores.sections()
