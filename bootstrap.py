@@ -10,6 +10,8 @@ from fabric.context_managers import cd
 from trytontasks_modules import read_config_file
 from trytontasks_scm import hg_clone
 from .utils import clean_modules
+import logging
+logging.basicConfig()
 
 MAX_PROCESSES = 25
 t = Terminal()
@@ -152,14 +154,18 @@ def install(config=None, module=None, mode=None):
 def update(server=None, module=None):
     'Update Tryton modules (hg pull update)'
     Servers = read_config_file('servers.cfg')
+    if not server:
+        Servers.remove_section('zzsaas')
     servers = Servers.sections()
 
     Modules = read_config_file()
     Modules = clean_modules(Servers, Modules, update=True)
-    # remove core modules. Updated with "hg upull"
-    Cores = read_config_file('core.cfg')
-    cores = Cores.sections()
-    for core in cores: Modules.remove_section(core)
+
+    if server == 'zzsaas':
+        # remove core modules. Updated with "hg upull"
+        Cores = read_config_file('core.cfg')
+        cores = Cores.sections()
+        for core in cores: Modules.remove_section(core)
 
     modules = Modules.sections()
     modules.sort()
