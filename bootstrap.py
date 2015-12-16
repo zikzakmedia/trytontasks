@@ -71,12 +71,9 @@ def install(config=None, module=None, mode=None):
     modules.sort()
 
     if module:
-        easy_install = False
         if not module in modules:
             return
         modules = [module]
-    else:
-        easy_install = True
 
     def _install_repo(url, name, branch='default'):
         command = 'pip install -e hg+%s/@%s#egg=%s --no-dependencies' % (url, branch, name)
@@ -147,7 +144,7 @@ def install(config=None, module=None, mode=None):
     if processes:
         wait_processes(processes)
 
-    if easy_install:
+    if mode != 'dev':
         print t.red("Remember regenerate easy-install.pth")
 
 @task
