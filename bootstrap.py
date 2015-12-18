@@ -16,6 +16,9 @@ logging.basicConfig()
 MAX_PROCESSES = 25
 t = Terminal()
 
+if os.path.exists('./config') and not os.path.exists('./config/servers.cfg'):
+    open('./config/servers.cfg', 'a').close()
+
 def wait_processes(processes, maximum=MAX_PROCESSES, exit_code=None):
     i = 0
     while len(processes) > maximum:
