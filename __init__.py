@@ -14,6 +14,12 @@ try:
 except:
     userdoc = False
 
+try:
+    import trytontasks_tests
+    tests = True
+except:
+    tests = False
+
 ns = Collection()
 ns.add_collection(Collection.from_module(trytontasks_modules, name='modules'))
 ns.add_collection(Collection.from_module(trytontasks_sao, name='sao'))
@@ -21,3 +27,5 @@ ns.add_collection(Collection.from_module(bootstrap, name='zz'))
 
 if userdoc:
     ns.add_collection(Collection.from_module(trytontasks_userdoc, name='doc'))
+if tests:
+    ns.add_collection(Collection.from_module(trytontasks_tests, name='tests'))
