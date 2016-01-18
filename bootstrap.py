@@ -9,7 +9,6 @@ from fabric.api import env, run as frun
 from fabric.context_managers import cd
 from trytontasks_modules import read_config_file
 from trytontasks_scm import hg_clone
-from .utils import clean_modules
 import logging
 logging.basicConfig()
 
@@ -36,9 +35,8 @@ def wait_processes(processes, maximum=MAX_PROCESSES, exit_code=None):
 @task
 def easy_install():
     'Regenerate easy-install.pth'
-    Servers = read_config_file('servers.cfg')
+    Servers = read_config_file('servers.cfg', type='servers')
     Modules = read_config_file()
-    Modules = clean_modules(Servers, Modules)
 
     modules = Modules.sections()
     modules.sort()
@@ -66,9 +64,8 @@ def easy_install():
 @task
 def install(config=None, module=None, mode=None):
     'Install Tryton modules (mode dev or production)'
-    Servers = read_config_file('servers.cfg')
+    Servers = read_config_file('servers.cfg', type='servers')
     Modules = read_config_file(config)
-    Modules = clean_modules(Servers, Modules)
 
     modules = Modules.sections()
     modules.sort()
@@ -153,13 +150,11 @@ def install(config=None, module=None, mode=None):
 @task
 def update(server=None, module=None):
     'Update Tryton modules (hg pull update)'
-    Servers = read_config_file('servers.cfg')
-    if not server:
-        Servers.remove_section('zzsaas')
+    Servers = read_config_file('servers.cfg', type='servers')
     servers = Servers.sections()
+    servers.sort()
 
     Modules = read_config_file()
-    Modules = clean_modules(Servers, Modules, update=True)
 
     if server == 'zzsaas':
         # remove core modules. Updated with "hg upull"
