@@ -1,7 +1,6 @@
 invoke
 hg+https://bitbucket.org/trytonspain/trytontasks-modules
 hg+https://bitbucket.org/trytonspain/trytontasks-scm
-hg+https://bitbucket.org/trytonspain/trytontasks-gal
 hg+https://bitbucket.org/trytonspain/trytontasks-sao
 hgapi
 blessings

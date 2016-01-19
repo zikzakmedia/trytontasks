@@ -4,9 +4,14 @@ from invoke import Collection
 
 # import here your tryton tasks projects
 import trytontasks_modules
-import trytontasks_gal
 import trytontasks_sao
 from .bootstrap import *
+
+try:
+    import trytontasks_gal
+    gal = True
+except:
+    gal = False
 
 try:
     import trytontasks_userdoc
@@ -25,6 +30,8 @@ ns.add_collection(Collection.from_module(trytontasks_modules, name='modules'))
 ns.add_collection(Collection.from_module(trytontasks_sao, name='sao'))
 ns.add_collection(Collection.from_module(bootstrap, name='zz'))
 
+if gal:
+    ns.add_collection(Collection.from_module(trytontasks_gal, name='gal'))
 if userdoc:
     ns.add_collection(Collection.from_module(trytontasks_userdoc, name='doc'))
 if tests:

@@ -8,9 +8,18 @@ Prerequisites
  * invoke (https://pypi.python.org/pypi/invoke/)
  * See requeriments.txt
 
-Intall User DOC:
+Install User DOC:
 
  * pip install hg+https://bitbucket.org/trytonspain/trytontasks-userdoc
+
+Install Gal:
+
+ * pip install hg+https://bitbucket.org/trytonspain/trytontasks-gal
+
+Install Tests:
+
+ * pip install hg+https://bitbucket.org/trytonspain/trytontasks-tests
+
 
 Installation
 ------------
