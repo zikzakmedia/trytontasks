@@ -191,3 +191,10 @@ def update(server=None, module=None):
             with cd(path):
                 if _hg_pull_update(server):
                     print "Updated " + t.bold(server) + ": "+t.green(module)
+
+@task
+def cookicuter(repo=None):
+    'Show command to create projects from project template'
+    if not repo:
+        repo = 'https://bitbucket.org/trytonspain/cookiecutter-tryton'
+    print 'cookiecutter %s' % repo
