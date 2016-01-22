@@ -12,6 +12,12 @@ from trytontasks_scm import hg_clone
 import logging
 logging.basicConfig()
 
+try:
+    from cookiecutter.main import cookiecutter as cookiecutter_main
+    cookiecutter = True
+except:
+    cookiecutter = False
+
 MAX_PROCESSES = 25
 t = Terminal()
 
@@ -194,7 +200,11 @@ def update(server=None, module=None):
 
 @task
 def cookicuter(repo=None):
-    'Show command to create projects from project template'
+    'Create projects from project template - cookiecutter'
     if not repo:
         repo = 'https://bitbucket.org/trytonspain/cookiecutter-tryton'
-    print 'cookiecutter %s' % repo
+    if not cookiecutter:
+        print 'cookiecutter %s' % repo
+        return
+
+    cookiecutter_main(repo)
