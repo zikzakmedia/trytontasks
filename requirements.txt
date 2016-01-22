@@ -47,3 +47,5 @@ jsonrpclib
 emailvalid
 PyPDF2
 html2text
+werkzeug
+wrapt
