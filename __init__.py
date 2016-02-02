@@ -11,7 +11,7 @@ except:
 import trytontasks_modules
 import trytontasks_sao
 from .bootstrap import *
-from .bank import *
+from .account import *
 
 try:
     import trytontasks_gal
@@ -36,7 +36,7 @@ ns.add_collection(Collection.from_module(trytontasks_modules, name='modules'))
 ns.add_collection(Collection.from_module(trytontasks_sao, name='sao'))
 ns.add_collection(Collection.from_module(bootstrap, name='zz'))
 if proteus:
-    ns.add_collection(Collection.from_module(bank, name='bank'))
+    ns.add_collection(Collection.from_module(account, name='account'))
 if gal:
     ns.add_collection(Collection.from_module(trytontasks_gal, name='gal'))
 if userdoc:
