@@ -1,17 +1,18 @@
 #This file is part of trytontasks. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 from invoke import Collection
-try:
-    import proteus as tryproteus
-    proteus = True
-except:
-    proteus = False
 
 # import here your tryton tasks projects
 import trytontasks_modules
 import trytontasks_sao
 from .bootstrap import *
-from .account import *
+
+# proteus tasks
+try:
+    from .account import *
+    proteus = True
+except:
+    proteus = False
 
 try:
     import trytontasks_gal
