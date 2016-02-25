@@ -202,7 +202,7 @@ def update(server=None, module=None):
 def cookicuter(repo=None):
     'Create projects from project template - cookiecutter'
     if not repo:
-        repo = 'https://bitbucket.org/trytonspain/cookiecutter-tryton'
+        repo = 'https://bitbucket.org/zikzakmedia/cookiecutter-tryton'
     if not cookiecutter:
         print 'cookiecutter %s' % repo
         return
