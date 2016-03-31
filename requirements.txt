@@ -22,7 +22,7 @@ chardet
 easyimap
 retrofix
 slug
-py-wikimarkup
+python-creole
 feedparser
 pyusb>=1.0.0b1
 pyserial
