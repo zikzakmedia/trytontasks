@@ -5,8 +5,6 @@ from invoke import task, run
 from blessings import Terminal
 from multiprocessing import Process
 from string import Template
-from fabric.api import env, run as frun
-from fabric.context_managers import cd
 from trytontasks_modules import read_config_file
 from trytontasks_scm import hg_clone
 import logging
@@ -181,22 +179,19 @@ def update(server=None, module=None):
             return
         servers = [server]
 
-    def _hg_pull_update(server):
-        try:
-            frun('hg pull -u')
-            return True
-        except:
-            print "%s %s" % (t.red(server), 'Error connection')
-            return False
+    def _hg_pull_update(hostname, port, path):
+        return run("ssh -p %(port)s %(hostname)s 'cd %(path)s;hg pull -u'" % {
+                'port': port,
+                'hostname': hostname,
+                'path': path,
+                }, pty=True, warn=True)
 
     for server in servers:
-        env.host_string = "%s" % Servers.get(server, 'server')
-
+        hostname, port = Servers.get(server, 'server').split(':')
         for module in modules:
             path = '%s/%s' % (Servers.get(server, 'path_modules'), module)
-            with cd(path):
-                if _hg_pull_update(server):
-                    print "Updated " + t.bold(server) + ": "+t.green(module)
+            if _hg_pull_update(hostname, port, path):
+                print "Updated " + t.bold(server) + ": "+t.green(module)
 
 @task
 def cookicuter(repo=None):
