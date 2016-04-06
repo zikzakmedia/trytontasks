@@ -17,7 +17,6 @@ paramiko>=1.16.0
 Pillow
 barcodenumber
 pybarcode
-vatnumber
 chardet
 easyimap
 retrofix
@@ -27,9 +26,6 @@ feedparser
 pyusb>=1.0.0b1
 pyserial
 python-stdnum
-wtforms-recaptcha
-Flask-Babel
-Flask-WTF>=0.9.4
 pyaml>=13.12.0
 asm
 correos
@@ -50,3 +46,4 @@ html2text
 werkzeug
 wrapt
 dateutils
+paypalrestsdk
