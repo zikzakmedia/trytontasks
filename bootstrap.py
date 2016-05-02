@@ -66,7 +66,7 @@ def easy_install():
         f.write(tpl) 
 
 @task
-def install(config=None, module=None, mode=None):
+def install(config=None, module=None, mode='dev'):
     'Install Tryton modules (mode dev or production)'
     Servers = read_config_file('servers.cfg', type='servers')
     Modules = read_config_file(config)
@@ -126,7 +126,7 @@ def install(config=None, module=None, mode=None):
             p = Process(target=func, args=(url, repo_path, branch))
             p.start()
             processes.append(p)
-        else: # install mode
+        else: # install mode # TODO Remove pip install
             if module == 'sao':
                 repo_path = os.path.join(path, module)
                 if os.path.exists(repo_path):
