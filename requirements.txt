@@ -19,7 +19,7 @@ barcodenumber
 pybarcode
 chardet
 easyimap
-retrofix
+retrofix==0.20
 slug
 python-creole
 feedparser
