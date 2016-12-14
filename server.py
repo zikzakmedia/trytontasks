@@ -58,6 +58,11 @@ def configuration(ctx, name=None):
         with open('etc/nginx-%s' % name, 'w') as f:
             f.write(nginx)
 
+        tmpl = loader.load('gunicorn.tpl', cls=NewTextTemplate)
+        gunicorn = tmpl.generate(**vals).render()
+        with open('etc/gunicorn-%s.py' % name, 'w') as f:
+            f.write(gunicorn)
+
         tmpl = loader.load('supervisor.conf', cls=NewTextTemplate)
         supervisor = tmpl.generate(**vals).render()
         with open('etc/supervisor-%s.cfg' % name, 'w') as f:
