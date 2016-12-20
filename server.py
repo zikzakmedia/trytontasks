@@ -32,10 +32,10 @@ def configuration(ctx, name=None):
     port = choice.Input('Port (8000)').ask() or 8000
     nginx = choice.Binary('Nginx', False).ask()
     if nginx:
-        nginx = port
-        port = str(int(port) + 1) # 8001
+        vals['nginx'] = nginx
+        vals['wsgi'] = str(int(port) + 1) # 8001 
+        port = str(int(port) + 2) # 8002
     vals['port'] = port
-    vals['nginx'] = nginx
     vals['path'] = os.path.dirname(__file__).replace('tasks', '')
     vals['dbuser'] = choice.Input('DB User').ask()
     vals['dbpwd'] = choice.Input('DB Password').ask()
@@ -71,6 +71,11 @@ def configuration(ctx, name=None):
         tmpl = loader.load('supervisor_trytond-wsgi.conf', cls=NewTextTemplate)
         supervisor_trytond = tmpl.generate(**vals).render()
         with open('etc/supervisor-%s-wsgi.cfg' % name, 'w') as f:
+            f.write(supervisor_trytond)
+
+        tmpl = loader.load('supervisor_trytond-trytond.conf', cls=NewTextTemplate)
+        supervisor_trytond = tmpl.generate(**vals).render()
+        with open('etc/supervisor-%s-trytond.cfg' % name, 'w') as f:
             f.write(supervisor_trytond)
 
         tmpl = loader.load('supervisor_trytond-cron.conf', cls=NewTextTemplate)
