@@ -4,15 +4,17 @@ from invoke import Collection, task
 from blessings import Terminal
 from genshi.template import TemplateLoader
 from genshi.template.text import NewTextTemplate
-import os
 import socket
 import choice
 import crypt
+import logging
 import random
 import string
+import os
 
 TEMPLATE_DIR = './config/templates'
 t = Terminal()
+logger = logging.getLogger(__name__)
 
 if os.path.exists(TEMPLATE_DIR):
     loader = TemplateLoader(TEMPLATE_DIR, auto_reload=True)
@@ -88,7 +90,7 @@ def configuration(ctx, name=None):
         with open('etc/server-%s-logs.cfg' % name, 'w') as f:
             f.write(trytond_logs)
 
-    print t.bold('Created configuration files')
+    logger.info(t.bold('Created configuration files'))
 
 # Add Invoke Collections
 ServerCollection = Collection()

@@ -1,10 +1,12 @@
 #This file is part of tryton-task. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
+import logging
 import os
 from invoke import Collection, task
 from blessings import Terminal
 
 t = Terminal()
+logger = logging.getLogger(__name__)
 
 __all__ = ['install', 'grunt']
 
@@ -15,7 +17,7 @@ def install(ctx):
     os.system('npm install')
     os.system('bower install')
 
-    print t.bold('Done')
+    logger.info(t.bold('Done'))
 
 @task
 def grunt(ctx):
@@ -23,7 +25,7 @@ def grunt(ctx):
     os.chdir('public_data/sao')
     os.system('grunt')
 
-    print t.bold('Done')
+    logger.info(t.bold('Done'))
 
 # Add Invoke Collections
 SaoCollection = Collection()

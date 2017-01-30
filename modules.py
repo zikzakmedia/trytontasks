@@ -1,15 +1,18 @@
 #This file is part of tryton-task. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 import ConfigParser
+import logging
 import os
 import hgapi
 from invoke import Collection, task
 from blessings import Terminal
 from multiprocessing import Process
+from show import show
 from .scm import hg_clone
 from .tools import wait_processes
 
 t = Terminal()
+logger = logging.getLogger(__name__)
 MAX_PROCESSES = 25
 
 __all__ = ['info', 'clone', 'branches']
@@ -64,15 +67,16 @@ def info(ctx, config=None):
     modules.sort()
 
     total = len(modules)
-    print t.bold(str(total) + ' modules')
+    logger.info(t.bold(str(total) + ' modules'))
 
     for module in modules:
-        print t.green(module)+' %s %s %s %s' % (
+        message = t.green(module)+' %s %s %s %s' % (
             Config.get(module, 'repo'),
             Config.get(module, 'url'),
             Config.get(module, 'path'),
             Config.get(module, 'branch'),
             )
+        show('{message}')
 
 def _hg_branches(module, path, config_branch=None):
     client = hgapi.Repo(path)
@@ -102,7 +106,7 @@ def _hg_branches(module, path, config_branch=None):
     else:
         msg = bcolors.WARN + msg + bcolors.ENDC
 
-    print msg
+    logger.info(msg)
 
 @task
 def clone(ctx, config=None, branch=None):
@@ -124,10 +128,10 @@ def clone(ctx, config=None, branch=None):
             continue
 
         if not os.path.exists('./trytond') and config != 'base.cfg':
-            print t.bold_red('Before clone all modules, please clone base.cfg modules')
+            logger.info(t.bold_red('Before clone all modules, please clone base.cfg modules'))
             return
 
-        print "Adding Module " + t.bold(module) + " to clone"
+        logger.info( "Adding Module " + t.bold(module) + " to clone")
 
         func = hg_clone
         p = Process(target=func, args=(url, repo_path, mod_branch))

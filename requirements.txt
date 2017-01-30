@@ -3,3 +3,9 @@ hgapi
 blessings
 genshi
 choice
+show
+
+# gal
+functools32
+xmltodict
+pyaml>=13.12.0
