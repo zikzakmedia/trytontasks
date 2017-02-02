@@ -11,6 +11,7 @@ from .server import ServerCollection
 
 try:
     from gal import GalCollection
+    from userdoc import UserDocCollection
     required_proteus = True
 except:
     required_proteus = False
@@ -30,3 +31,4 @@ ns.add_collection(ServerCollection, 'server')
 
 if required_proteus:
     ns.add_collection(GalCollection, 'gal')
+    ns.add_collection(UserDocCollection, 'doc')

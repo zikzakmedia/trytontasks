@@ -9,3 +9,6 @@ show
 functools32
 xmltodict
 pyaml>=13.12.0
+
+#userdoc
+path.py>=10.0
