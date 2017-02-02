@@ -105,7 +105,7 @@ def create(ctx, database, password='admin'):
     admin.save()
 
 @task()
-def install(ctx, database, password='admin', modules=None, data=True):
+def install(ctx, database, password='admin', modules=None, data=False):
     'Install modules and create data'
     pconfig = set_config(database, password)
     context = pconfig.context
