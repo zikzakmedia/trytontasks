@@ -51,3 +51,18 @@ def hg_clone(url, path, branch="default", revision=None):
     else:
         logger.info("Repo " + t.bold(path) + t.green(" Updated") + \
             " and branch: " + branch)
+
+def hg_update(path):
+    try:
+        repo = hgapi.Repo(path)
+        repo.hg_pull()
+        revision = repo.hg_branch()
+        repo.hg_update(revision)
+    except hgapi.HgException, e:
+        logger.info(t.bold_red('[' + path + ']'))
+        logger.info("Error running %s: %s" % (e.exit_code, str(e)))
+        return -1
+    except:
+        return -1
+
+    logger.info("Repo " + t.bold(path) + t.green(" Updated"))

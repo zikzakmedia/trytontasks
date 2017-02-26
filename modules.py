@@ -8,7 +8,7 @@ from invoke import Collection, task
 from blessings import Terminal
 from multiprocessing import Process
 from show import show
-from .scm import hg_clone
+from .scm import hg_clone, hg_update
 from .tools import wait_processes
 
 t = Terminal()
@@ -142,6 +142,40 @@ def clone(ctx, config=None, branch=None):
         wait_processes(processes)
 
 @task
+def update(ctx, config=None, module=None):
+    '''Update trytond modules'''
+    Modules = read_config_file(config)
+
+    modules = Modules.sections()
+    modules.sort()
+
+    if module:
+        if module in modules:
+            modules = [module]
+        else:
+            logger.error( "Not found " + t.bold(module))
+            return
+
+    processes = []
+    for module in modules:
+        repo = Modules.get(module, 'repo')
+        path = Modules.get(module, 'path')
+
+        repo_path = os.path.join(path, module)
+        if not os.path.exists(repo_path):
+            continue
+
+        logger.info( "Adding Module " + t.bold(module) + " to update")
+
+        func = hg_update
+        p = Process(target=func, args=(repo_path,))
+        p.start()
+        processes.append(p)
+
+    if processes:
+        wait_processes(processes)
+
+@task
 def branches(ctx, config=None, module=None):
     '''Show info module branches'''
     Modules = read_config_file(config)
@@ -166,4 +200,5 @@ def branches(ctx, config=None, module=None):
 ModulesCollection = Collection()
 ModulesCollection.add_task(info)
 ModulesCollection.add_task(clone)
+ModulesCollection.add_task(update)
 ModulesCollection.add_task(branches)
