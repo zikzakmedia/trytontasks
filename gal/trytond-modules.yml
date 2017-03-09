@@ -85,7 +85,6 @@ to_activated:
   - stock_buttons
   - stock_comment
   - stock_delivery_note_jreport
-  - stock_delivery_note_valued_jreport
   - stock_origin
   - stock_supply
   - stock_valued
