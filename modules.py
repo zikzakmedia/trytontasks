@@ -8,8 +8,14 @@ from invoke import Collection, task
 from blessings import Terminal
 from multiprocessing import Process
 from show import show
+from sql import Table
 from .scm import hg_clone, hg_update
-from .tools import wait_processes
+from .tools import wait_processes, set_context
+
+try:
+    from trytond.transaction import Transaction
+except:
+    pass
 
 t = Terminal()
 logger = logging.getLogger(__name__)
@@ -196,9 +202,36 @@ def branches(ctx, config=None, module=None):
 
         _hg_branches(module, repo_path, branch)
 
+@task
+def forgotten(ctx, database, config_file=os.environ.get('TRYTOND_CONFIG')):
+    '''Remove modules in ir-modules that not found in cfg config'''
+
+    ir_module = Table('ir_module')
+
+    with set_context(database, config_file):
+        cursor = Transaction().connection.cursor()
+        cursor.execute(*ir_module.select(ir_module.name, ir_module.state))
+        db_module_list = [(r[0], r[1]) for r in cursor.fetchall()]
+
+        Modules = read_config_file()
+
+        modules = Modules.sections()
+        modules.append('tests')
+        modules.sort()
+
+        to_delete = []
+        for module, state in db_module_list:
+            if state == 'not activated' and module not in modules:
+                to_delete.append(module)
+
+        if to_delete:
+            cursor.execute(*ir_module.delete(where=ir_module.name.in_(to_delete)))
+            logger.info( "Deleted: " + ', '.join(to_delete))
+
 # Add Invoke Collections
 ModulesCollection = Collection()
 ModulesCollection.add_task(info)
 ModulesCollection.add_task(clone)
 ModulesCollection.add_task(update)
 ModulesCollection.add_task(branches)
+ModulesCollection.add_task(forgotten)
