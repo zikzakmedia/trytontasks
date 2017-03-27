@@ -53,6 +53,7 @@ to_activated:
   - party_comment
   - party_identifier
   - party_lang
+  - party_relationship
   - party_search
   - party_tradename
   - party_vat_unique
