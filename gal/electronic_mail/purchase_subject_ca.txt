@@ -1,0 +1,1 @@
+${record.state in ['draft','quotation'] and 'Sol·licitud' or 'Comanda'} de compra ${record.reference or record.party.name}

@@ -9,188 +9,65 @@ import sys
 import yaml
 from invoke import Collection, task, run
 from blessings import Terminal
-from proteus import Model, Wizard
-from proteus import config as pconfig_
 from trytond.config import config, parse_uri
-
-from .utils import *
-from .company import *
-from .bank import *
-from .country import *
-from .account import *
-from .party import *
-from .product import *
-from .sale import *
-from .sale_opportunity import *
-from .purchase import *
-from .production import *
-from .stock import *
 
 t = Terminal()
 logger = logging.getLogger(__name__)
 TODAY = datetime.date.today()
 
-def set_config(database, password):
-    os.environ['DB_NAME'] = database
-    database = 'postgresql://%s' % database
-    return pconfig_.set_trytond(
-        database=database,
-        user='admin',
-        config_file='./etc/server-%s.cfg' % socket.gethostname())
-
-def get_modules():
-    config = yaml.load(open('tasks/gal/trytond-modules.yml', 'r').read())
-    config.setdefault('to_activated', [])
-    return config
-
-def install_modules(config, modules):
-    Module = Model.get('ir.module')
-
-    if not modules:
-        modules = get_modules().get('to_activated', [])
-    logger.info(t.green('Modules to install: %s' % ', '.join(modules)))
-
-    modules = Module.find([
-            ('name', 'in', modules),
-            ])
-    for module in modules:
-        if module.state == 'activated':
-            module.click('upgrade')
-        else:
-            module.click('activate')
-    modules = [x.name for x in Module.find([('state', '=', 'to activate')])]
-    Wizard('ir.module.activate_upgrade').execute('upgrade')
-
-    ConfigWizardItem = Model.get('ir.module.config_wizard.item')
-    for item in ConfigWizardItem.find([('state', '!=', 'done')]):
-        item.state = 'done'
-        item.save()
-
-    installed_modules = [m.name
-        for m in Module.find([('state', '=', 'activated')])]
-    return modules, installed_modules
-
+TRYTOND_CONFIG = os.environ.get('TRYTOND_CONFIG',
+    './etc/server-%s.cfg' % socket.gethostname())
 
 @task()
-def create(ctx, database, password='admin'):
+def create(ctx, database):
     'Create trytond database and langs. The DB must created with createdb psql.'
     logger.info('Create DB %s' % database)
 
     command = 'trytond/bin/trytond-admin -v -c %(config)s --all -d %(database)s -l es' % {
-        'config': './etc/server-%s.cfg' % socket.gethostname(),
+        'config': TRYTOND_CONFIG,
         'database': database,
         }
     run(command)
 
-    # After trytond-admin we could do proteus tasks
-    pconfig = set_config(database, password)
+@task()
+def install(ctx, database, modules=None):
+    'Install modules'
 
-    Lang = Model.get('ir.lang')
-    User = Model.get('res.user')
+    command = './tasks/gal/activate.py -d %(database)s' % {
+        'database': database,
+        }
+    if modules:
+        command += ' -m %s' % modules
+    run(command)
 
-    # Set langs translatable
-    ca, es = Lang.find([
-            ('code', 'in', ['es', 'ca']),
-            ])
-    ca.translatable = True
-    ca.save()
-    es.translatable = True
-    es.save()
+    command = 'trytond/bin/trytond-admin -v -c %(config)s --all -d %(database)s' % {
+        'config': TRYTOND_CONFIG,
+        'database': database,
+        }
+    run(command)
 
-    # Set lang in admin user
-    admin, = User.find([
-            ('login', '=', 'admin'),
-            ], limit=1)
-    admin.language = es
-    admin.save()
+    command = './tasks/gal/activate_config.py -d %(database)s' % {
+        'database': database,
+        }
+    if modules:
+        command += ' -m %s' % modules
+    run(command)
 
 @task()
-def install(ctx, database, password='admin', modules=None, data=False):
-    'Install modules and create data'
-    pconfig = set_config(database, password)
-    context = pconfig.context
-    language = context.get('language', 'es')
-    # TODO modules args list parameters
-    # https://github.com/pyinvoke/invoke/issues/132
+def demo(ctx, database, modules=None):
+    'Demo modules'
+
+    command = './tasks/gal/demo.py -d %(database)s' % {
+        'database': database,
+        }
     if modules:
-        modules = modules.split(' ')
-
-    to_install, installed = install_modules(pconfig, modules)
-
-    if 'bank_es' in to_install:
-        logger.info('Load Spanish Banks...')
-        load_bank_es()
-    if 'country_zip_es' in to_install:
-        logger.info('Load Spanish cities and subdivisions...')
-        load_country_zip_es()
-    if 'company' in to_install:
-        logger.info('Create company...')
-        create_company(pconfig, 'TrytonERP')
-    if 'account' in to_install:
-        logger.info('Create accounts...')
-        last_year = TODAY.year -1
-        create_fiscal_year(config=pconfig, year=last_year)
-        create_fiscal_year(config=pconfig)
-        create_payment_terms()
-        if 'account_es' in to_install:
-            module = 'account_es'
-            fs_id = 'pgc_0'
-        elif 'account_es_pyme' in to_install:
-            module = 'account_es_pyme'
-            fs_id = 'pgc_pymes_0'
-        else:
-            module = 'account'
-            fs_id = 'account_template_root_%s' % language
-        create_account_chart(module=module, fs_id=fs_id, digits=6)
-        create_taxes()
-    if 'account_payment_type' in to_install:
-        logger.info('Create payment types...')
-        create_payment_types(language=language)
-
-    if not data:
-        return
-
-    # Demo data
-    if 'party' in to_install:
-        logger.info('Create parties...')
-        create_parties()
-    if 'product' in to_install:
-        logger.info('Create products...')
-        create_product_categories()
-        create_products()
-    if 'product_price_list' in to_install:
-        logger.info('Create price lists...')
-        create_price_lists(language=language)
-    if 'sale' in to_install:
-        logger.info('Create sales...')
-        create_sales()
-        process_sales(config=pconfig)
-    if 'sale_opportunity' in to_install:
-        logger.info('Create sale opportunities...')
-        create_opportunities()
-        process_opportunities()
-    if 'purchase' in to_install:
-        logger.info('Create purchases...')
-        create_purchases()
-        process_purchases(config=pconfig)
-    if 'production' in to_install:
-        logger.info('Create productions...')
-        create_boms()
-        create_production_requests()
-    if 'stock' in to_install:
-        logger.info('Create Stock Inventory...')
-        create_inventory(config=pconfig)
-        logger.info('Create Stock Shipments...')
-        process_customer_shipments(config=pconfig)
-        process_supplier_shipments(config=pconfig)
-    if 'account_invoice' in to_install:
-        logger.info('Process Customer Invoices...')
-        process_customer_invoices(config=pconfig)
+        command += ' -m %s' % modules
+    run(command)
 
 @task()
 def dump(ctx, database):
     'Dump PSQL Database to SQL file'
-    config.update_etc('./etc/server-%s.cfg' % socket.gethostname())
+    config.update_etc(TRYTOND_CONFIG)
     uri = config.get('database', 'uri')
 
     logger.info("Dump PSQL database: " + t.green(database))
@@ -204,7 +81,7 @@ def dump(ctx, database):
 @task()
 def restore(ctx, database, filename):
     'Create PSQL Database and restore SQL file'
-    config.update_etc('./etc/server-%s.cfg' % socket.gethostname())
+    config.update_etc(TRYTOND_CONFIG)
     uri = config.get('database', 'uri')
 
     logger.info("Restore PSQL database: " + t.green(database))
@@ -233,7 +110,7 @@ def restore(ctx, database, filename):
 @task()
 def dropdb(database):
     'Drop PSQL Database'
-    config.update_etc('./etc/server-%s.cfg' % socket.gethostname())
+    config.update_etc(TRYTOND_CONFIG)
     uri = config.get('database', 'uri')
 
     logger.info("Drop PSQL database: " + t.green(database))
@@ -248,5 +125,6 @@ def dropdb(database):
 GalCollection = Collection()
 GalCollection.add_task(create)
 GalCollection.add_task(install)
+GalCollection.add_task(demo)
 GalCollection.add_task(dump)
 GalCollection.add_task(restore)

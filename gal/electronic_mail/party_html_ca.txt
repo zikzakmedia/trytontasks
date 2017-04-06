@@ -1,0 +1,5 @@
+<h2>${record.name}</h2>
+
+<p>Estimat Sr./Sra.,</p>
+
+<p>Atentament,</p>

@@ -1,0 +1,17 @@
+<p>Benvolgut Sr./Sra. ${record.invoice_address.name or ''},</p>
+
+#if record.state == 'draft'
+<p>Adjuntem el pressupost${record.description and ' referent a "'+record.description+'"' or ''} que heu sol·licitat.</p>
+#end
+#if record.state == 'validated'
+<p>Adjuntem  la factura ProForma${record.description and ' referent a "'+record.description+'"' or ''}.</p>
+#end
+#if record.state not in ['draft', 'validated']
+<p>Adjuntem  la factura amb data ${str(record.invoice_date)[8:]}-${str(record.invoice_date)[5:7]}-${str(record.invoice_date)[:4]} i número ${record.number}${record.description and ', referent a "'+record.description+'"' or ''}.</p>
+#end
+
+<p>El document està en format PDF. Per poder-lo llegir correctament és necessari disposar d'un lector de PDFs (Adobe Acrobat Reader o similar) al vostre ordinador.</p>
+
+<p>Si voleu algun aclariment addicional ens ho podeu fer saber mitjançant l'adreça de correu ${record.company.party.get_mechanism('email') or 'user@demo_server.com'}.</p>
+
+<p>Atentament,</p>

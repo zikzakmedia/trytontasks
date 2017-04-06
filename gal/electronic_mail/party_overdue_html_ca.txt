@@ -1,0 +1,21 @@
+<p>Benvolgut Sr./Sra. ${record.name},</p>
+
+<p>Aquesta és la relació de pagaments que ens consten pendents de ${record.name}:</p>
+
+<table cellpadding=\"5\">
+<tr><td><b>Data</b></td><td align=\"right\"><b>Import</b></td><td><b>Document</b></td><td><b>Descripció</b></td></tr>
+#for line in record.receivable_lines
+<tr><td>${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} </td><td align=\"right\">${line.debit-line.credit}€ </td><td>${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''} </td><td>${line.description}</td></tr>
+#end
+#for line in record.payable_lines
+<tr><td>${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} </td><td align=\"right\">${line.debit-line.credit}€ </td><td>${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''} </td><td>${line.description}</td></tr>
+#end
+</table>
+
+<p>El deute total és de <b>${record.receivable-record.payable}€</b></p>
+
+<p>El deute total ja vençut és de <b>${record.receivable_today-record.payable_today}€</b></p>
+
+<p>Us agrairíem que comprovéssiu aquesta informació amb el vostre departament de comptabilitat i que féssiu els pagaments pendents el més aviat possible.</p>
+
+<p>Atentament,</p>

@@ -1,0 +1,26 @@
+Benvolgut Sr./Sra. ${record.invoice_address and record.invoice_address.name or ''},
+
+#if record.state == 'draft'
+Adjuntem la sol·licitud de compra${record.description and ' referent a "'+record.description+'"' or ''}.
+#end
+#if record.state == 'quotation'
+Adjuntem la sol·licitud de compra${record.description and ' referent a "'+record.description+'"' or ''} amb referència ${record.reference}.
+#end
+#if record.state not in ['draft', 'quotation']
+Adjuntem la comanda de compra${record.description and ' referent a "'+record.description+'"' or ''} amb data ${str(record.purchase_date)[8:]}-${str(record.purchase_date)[5:7]}-${str(record.purchase_date)[:4]} i referència ${record.reference}.
+#end
+
+#if record.lines
+  Qt. Producte
+  #for line in record.lines
+  #if line.type == 'line'
+  ${line.quantity or ''} ${line.description or ''}
+  #end
+  #end
+#end
+
+El document està en format PDF. Per poder-lo llegir correctament és necessari disposar d'un lector de PDFs (Adobe Acrobat Reader o similar) al vostre ordinador.
+
+Si voleu algun aclariment addicional ens ho podeu fer saber mitjançant l'adreça de correu ${record.company.party.get_mechanism('email') or 'user@demo_server.com'}.
+
+Atentament,

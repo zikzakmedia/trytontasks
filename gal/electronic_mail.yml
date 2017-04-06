@@ -1,0 +1,54 @@
+templates:
+  - name: party_name
+    model: party.party
+    from_: user@demo_server.com
+    to: ${record.get_mechanism('email') or ''}
+    language: ${record.lang and record.lang.code or 'es'}
+    engine: genshi
+    signature: true
+    subject: party_subject
+    plain: party_plain
+    html: party_html
+  - name: party_overdue_name
+    model: party.party
+    from_: user@demo_server.com
+    to: ${record.get_mechanism('email') or ''}
+    language: ${record.lang and record.lang.code or 'es'}
+    engine: genshi
+    signature: true
+    subject: party_overdue_subject
+    plain: party_overdue_plain
+    html: party_overdue_html
+  - name: invoice_name
+    model: account.invoice
+    from_: user@demo_server.com
+    to: ${record.party.get_mechanism('email') or ''}
+    language: ${record.party.lang and record.party.lang.code or 'es'}
+    engine: genshi
+    signature: true
+    subject: invoice_subject
+    plain: invoice_plain
+    html: invoice_html
+    report: invoice-${record.number or 'trytonerp'}
+  - name: sale_name
+    model: sale.sale
+    from_: user@demo_server.com
+    to: ${record.party.get_mechanism('email') or ''}
+    language: ${record.party.lang and record.party.lang.code or 'es'}
+    engine: genshi
+    signature: true
+    subject: sale_subject
+    plain: sale_plain
+    html: sale_html
+    report: sale-${record.number or 'trytonerp'}
+  - name: purchase_name
+    model: purchase.purchase
+    from_: user@demo_server.com
+    to: ${record.party.get_mechanism('email') or ''}
+    language: ${record.party.lang and record.party.lang.code or 'es'}
+    engine: genshi
+    signature: true
+    subject: purchase_subject
+    plain: purchase_plain
+    html: purchase_html
+    report: purchase-${record.number or 'trytonerp'}

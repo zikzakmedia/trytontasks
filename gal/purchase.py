@@ -3,8 +3,8 @@
 import datetime
 import logging
 from dateutil.relativedelta import relativedelta
-from proteus import Model
-from .utils import *
+from trytond.pool import Pool
+from utils import *
 
 TODAY = datetime.date.today()
 logger = logging.getLogger(__name__)
@@ -17,33 +17,38 @@ def create_purchases(count=100, linecount=10):
     If 'count' is not specified 100 is used by default.
     If 'linecount' is not specified 10 is used by default.
     """
-    Purchase = Model.get('purchase.purchase')
-    PurchaseLine = Model.get('purchase.line')
-    Party = Model.get('party.party')
-    Product = Model.get('product.product')
-    Term = Model.get('account.invoice.payment_term')
+    Purchase = Pool().get('purchase.purchase')
+    PurchaseLine = Pool().get('purchase.line')
+    Party = Pool().get('party.party')
+    Product = Pool().get('product.product')
+    Term = Pool().get('account.invoice.payment_term')
 
-    parties = Party.find([])
-    products = Product.find([('purchasable', '=', True)])
+    parties = Party.search([])
+    products = Product.search([('purchasable', '=', True)])
     if not products:
         logger.info('Not found purchasable products')
         return
-    terms = Term.find([])
+    terms = Term.search([])
 
     for c in xrange(count):
         purchase = Purchase()
         purchase.party = random.choice(parties)
+        purchase.on_change_party()
         if not purchase.payment_term:
             purchase.payment_term = random.choice(terms)
 
+        lines = []
         for lc in xrange(random.randrange(1, linecount)):
             line = PurchaseLine()
-            purchase.lines.append(line)
             line.product = random.choice(products)
             line.quantity = random.randrange(1, 20)
+            line.on_change_product()
+            lines.append(line)
+
+        purchase.lines = lines
         purchase.save()
 
-def process_purchases(config):
+def process_purchases():
     """
     It randomly processes some purchases:
 
@@ -51,16 +56,19 @@ def process_purchases(config):
     10% of existing draft purchases are left in quotation state
     80% of existing draft purchases are left in confirmed state
     """
-    Purchase = Model.get('purchase.purchase')
+    Purchase = Pool().get('purchase.purchase')
 
-    purchases = Purchase.find([('state', '=', 'draft')])
+    purchases = Purchase.search([
+        ('state', '=', 'draft'),
+        ('invoice_address', '!=', None),
+        ])
     if not purchases:
         logger.info('Not found draft purchases')
         return
     # Change 90% to quotation state
     purchases = random.sample(purchases, int(0.9 * len(purchases)))
-    Purchase.quote([x.id for x in purchases], config.context)
+    Purchase.quote(purchases)
 
     # Change 90% to confirmed state
     purchases = random.sample(purchases, int(0.9 * len(purchases)))
-    Purchase.confirm([x.id for x in purchases], config.context)
+    Purchase.confirm(purchases)

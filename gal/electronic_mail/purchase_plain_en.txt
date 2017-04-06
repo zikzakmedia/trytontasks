@@ -1,0 +1,26 @@
+Dear Mr./Ms. ${record.invoice_address and record.invoice_address.name or ''},
+
+#if record.state == 'draft'
+Attached we send the purchase request${record.description and ' concerning "'+record.description+'"' or ''}.
+#end
+#if record.state == 'quotation'
+Attached we send the purchase request${record.description and ' concerning "'+record.description+'"' or ''} with reference ${record.reference}.
+#end
+#if record.state not in ['draft', 'quotation']
+Attached we send the purchase order${record.description and ' concerning "'+record.description+'"' or ''} dated ${str(record.purchase_date)[8:]}-${str(record.purchase_date)[5:7]}-${str(record.purchase_date)[:4]} with reference ${record.reference}.
+#end
+
+#if record.lines
+  Qty Product
+  #for line in record.lines
+  #if line.type == 'line'
+  ${line.quantity or ''} ${line.description or ''}
+  #end
+  #end
+#end
+
+The document is in PDF format. To read it correctly you must have installed a PDF reader program (Adobe Acrobat Reader or similar) on your computer.
+
+If you want any further clarification you can contact by e-mail to ${record.company.party.get_mechanism('email') or 'user@demo_server.com'}.
+
+Sincerely,

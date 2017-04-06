@@ -46,6 +46,7 @@ to_activated:
   - country_zip
   - country_zip_es
   - currency
+  - electronic_mail
   - jasper_reports
   - jasper_reports_options
   - mass_editing

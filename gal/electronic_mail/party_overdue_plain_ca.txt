@@ -1,0 +1,18 @@
+Benvolgut Sr./Sra. ${record.name},
+
+Aquesta és la relació de pagaments que ens consten pendents de ${record.name}:
+
+Data        Import   Document Descripció
+#for line in record.receivable_lines
+${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} ${' '*(8-len(str(line.debit-line.credit)))} ${line.debit-line.credit}€  ${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''} ${line.description}
+#end
+#for line in record.payable_lines
+${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} ${' '*(8-len(str(line.debit-line.credit)))} ${line.debit-line.credit}€  ${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''} ${line.description}
+#end
+
+El deute total és de ${record.receivable-record.payable}€
+El deute total ja vençut és de ${record.receivable_today-record.payable_today}€
+
+Us agrairíem que comprovéssiu aquesta informació amb el vostre departament de comptabilitat i que féssiu els pagaments pendents el més aviat possible.
+
+Atentament,

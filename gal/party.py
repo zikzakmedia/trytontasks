@@ -2,28 +2,26 @@
 #this repository contains the full copyright notices and license terms.
 import os
 import random
-from proteus import Model
-from .utils import *
+from trytond.pool import Pool
+from utils import *
 
 def create_party(name, street=None, streetbis=None, zip=None, city=None,
         subdivision_code=None, country_code='ES', phone=None, website=None,
         email=None, address_name=None):
-    """
-    Create party
-    """
-    Address = Model.get('party.address')
-    ContactMechanism = Model.get('party.contact_mechanism')
-    Country = Model.get('country.country')
-    Party = Model.get('party.party')
-    Subdivision = Model.get('country.subdivision')
+    'Create party'
+    Address = Pool().get('party.address')
+    ContactMechanism = Pool().get('party.contact_mechanism')
+    Country = Pool().get('country.country')
+    Party = Pool().get('party.party')
+    Subdivision = Pool().get('country.subdivision')
 
-    parties = Party.find([('name', '=', name)])
+    parties = Party.search([('name', '=', name)])
     if parties:
         return parties[0]
 
-    country, = Country.find([('code', '=', country_code)])
+    country, = Country.search([('code', '=', country_code)])
     if subdivision_code:
-        subdivision, = Subdivision.find([('code', '=', subdivision_code)])
+        subdivision, = Subdivision.search([('code', '=', subdivision_code)])
     else:
         subdivision = None
 
@@ -31,28 +29,35 @@ def create_party(name, street=None, streetbis=None, zip=None, city=None,
         # Create a ZIP from Barcelona if none was provided
         zip = '08' + str(random.randrange(1000)).zfill(3)
 
-    party = Party(name=name)
-    party.addresses.pop()
-    party.addresses.append(
+    default_values = Party.default_get(
+        Party._fields.keys(), with_rec_name=False)
+    party = Party(**default_values)
+    party.name = name
+    addresses = []
+    addresses.append(
         Address(
             name=address_name,
             street=street,
             zip=zip,
             city=city,
             country=country,
-            subdivision=subdivision))
+            subdivision=subdivision)
+        )
+    party.addresses = addresses
+    contact_mechanisms = []
     if phone:
-        party.contact_mechanisms.append(
+        contact_mechanisms.append(
             ContactMechanism(type='phone',
                 value=phone))
     if website:
-        party.contact_mechanisms.append(
+        contact_mechanisms.append(
             ContactMechanism(type='website',
                 value=website))
     if email:
-        party.contact_mechanisms.append(
+        contact_mechanisms.append(
             ContactMechanism(type='email',
                 value=email))
+    party.contact_mechanisms = contact_mechanisms
     party.lang = random.choice(get_languages())
 
     if hasattr(party, 'account_payable'):
@@ -83,7 +88,6 @@ def create_party(name, street=None, streetbis=None, zip=None, city=None,
             party.sale_price_list = random.choice(price_lists)
     if hasattr(party, 'include_347'):
         party.include_347 = True
-
     party.save()
     return party
 

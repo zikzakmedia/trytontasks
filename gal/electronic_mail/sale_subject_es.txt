@@ -1,0 +1,1 @@
+${record.state in ['draft','quotation'] and 'Presupuesto' or 'Pedido'} ${record.reference or record.party.name}

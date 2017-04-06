@@ -1,0 +1,17 @@
+<p>Estimado Sr./Sra. ${record.invoice_address.name or ''},</p>
+
+#if record.state == 'draft'
+<p>Adjuntamos el presupuesto${record.description and ' referente a "'+record.description+'"' or ''} que ha solicitado.</p>
+#end
+#if record.state == 'validated'
+<p>Adjuntamos la factura ProForma${record.description and ' referente a "'+record.description+'"' or ''}.</p>
+#end
+#if record.state not in ['draft', 'validated']
+<p>Adjuntamos la factura con fecha ${str(record.invoice_date)[8:]}-${str(record.invoice_date)[5:7]}-${str(record.invoice_date)[:4]} y número ${record.number}${record.description and ', referente a "'+record.description+'"' or ''}.</p>
+#end
+
+<p>El documento está en formato PDF. Para poder leerlo correctamente es necesario haber instalado un programa lector de PDFs (Adobe Acrobat Reader o similar) en su ordenador.</p>
+
+<p>Si desea alguna aclaración adicional puede contactar mediante la dirección de correo ${record.company.party.get_mechanism('email') or 'user@demo_server.com'}.</p>
+
+<p>Atentamente,</p>

@@ -1,0 +1,26 @@
+Estimado Sr./Sra. ${record.invoice_address and record.invoice_address.name or ''},
+
+#if record.state == 'draft'
+Adjuntamos el presupuesto${record.description and ' referente a "'+record.description+'"' or ''} que ha solicitado.
+#end
+#if record.state == 'quotation'
+Adjuntamos el presupuesto${record.description and ' referente a "'+record.description+'"' or ''} con referencia ${record.reference} que ha solicitado.
+#end
+#if record.state not in ['draft', 'quotation']
+Adjuntamos el pedido de venta${record.description and ' referente a "'+record.description+'"' or ''} con fecha ${str(record.sale_date)[8:]}-${str(record.sale_date)[5:7]}-${str(record.sale_date)[:4]} y referencia ${record.reference}.
+#end
+
+#if record.lines
+  Ctd Producto
+  #for line in record.lines
+  #if line.type == 'line'
+  ${line.quantity or ''} ${line.description or ''}
+  #end
+  #end
+#end
+
+El documento está en formato PDF. Para poder leerlo correctamente es necesario haber instalado un programa lector de PDFs (Adobe Acrobat Reader o similar) en su ordenador.
+
+Si desea alguna aclaración adicional puede contactar mediante la dirección de correo ${record.company.party.get_mechanism('email') or 'user@demo_server.com'}.
+
+Atentamente,

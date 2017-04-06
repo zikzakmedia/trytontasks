@@ -1,0 +1,1 @@
+${record.state == 'draft' and 'Pressupost' or 'Factura'}${record.state == 'validated' and ' ProForma' or ''} ${record.number or record.party.name}

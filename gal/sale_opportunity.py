@@ -1,7 +1,12 @@
 #This file is part of trytontasks_gal. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-from proteus import Model, Wizard
-from .utils import *
+import datetime
+from dateutil.relativedelta import relativedelta
+from trytond.pool import Pool
+from utils import *
+from party import create_party
+
+TODAY = datetime.date.today()
 
 def create_opportunities(count=100, linecount=10):
     """
@@ -12,15 +17,25 @@ def create_opportunities(count=100, linecount=10):
     - It converts 40% of the opportunities as lost
     - It sets 80% of the remaining opportunities are converted.
     """
-    Opportunity = Model.get('sale.opportunity')
-    OpportunityLine = Model.get('sale.opportunity.line')
-    Product = Model.get('product.product')
-    Party = Model.get('party.party')
-    Term = Model.get('account.invoice.payment_term')
+    Opportunity = Pool().get('sale.opportunity')
+    OpportunityLine = Pool().get('sale.opportunity.line')
+    Product = Pool().get('product.product')
+    Party = Pool().get('party.party')
+    Term = Pool().get('account.invoice.payment_term')
+    Employee = Pool().get('company.employee')
 
-    parties = Party.find([])
-    products = Product.find([('salable', '=', True)])
-    terms = Term.find([])
+    parties = Party.search([])
+    products = Product.search([('salable', '=', True)])
+    terms = Term.search([])
+
+    employees = Employee.search([], limit=1)
+    if employees:
+        employee, = employees
+    else:
+        party = create_party(name='Raimon')
+        employee = Employee()
+        employee.party = party
+        employee.save()
 
     for x in xrange(count):
         opp = Opportunity()
@@ -32,16 +47,22 @@ def create_opportunities(count=100, linecount=10):
             opp.address = party.addresses[0]
         opp.start_date = random_datetime(TODAY + relativedelta(months=-12),
             TODAY)
+        opp.on_change_party()
         if not opp.payment_term:
             opp.payment_term = random.choice(terms)
         opp.probability = random.randrange(1, 9) * 10
         opp.amount = random.randrange(1, 10) * 1000
+        opp.employee = employee
 
+        lines = []
         for lc in xrange(random.randrange(1, linecount)):
             line = OpportunityLine()
-            opp.lines.append(line)
             line.product = random.choice(products)
             line.quantity = random.randrange(1, 20)
+            line.on_change_product()
+            lines.append(line)
+
+        opp.lines = lines
         opp.save()
 
 def process_opportunities():
@@ -52,16 +73,16 @@ def process_opportunities():
     - It converts 40% of the opportunities as lost
     - It sets 80% of the remaining opportunities as converted (sale created)
     """
-    Opportunity = Model.get('sale.opportunity')
-    opps = Opportunity.find([('state', '=', 'lead')])
-    opps = [x.id for x in opps]
+    Opportunity = Pool().get('sale.opportunity')
+
+    opps = Opportunity.search([('state', '=', 'lead')])
     opps = random.sample(opps, int(0.8 * len(opps)))
     if opps:
-        Opportunity.opportunity(opps, config.context)
+        Opportunity.opportunity(opps)
 
     lost = random.sample(opps, int(0.4 * len(opps)))
     if lost:
-        Opportunity.lost(lost, config.context)
+        Opportunity.lost(lost)
 
     # Only convert non-lost opportunities
     nopps = []
@@ -73,4 +94,4 @@ def process_opportunities():
     opps = random.sample(opps, int(0.8 * len(opps)))
     opps = [Opportunity(x) for x in opps]
     if opps:
-        Wizard('sale.opportunity.convert_opportunity', opps)
+        Opportunity.convert(opps)

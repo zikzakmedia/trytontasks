@@ -1,9 +1,9 @@
 #This file is part of trytontasks_gal. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 import random
-from proteus import Model
+from trytond.pool import Pool
 
-def create_inventory(config, maxquantity=1000):
+def create_inventory(maxquantity=1000):
     """
     It randomly makes an inventory of 80% of existing products.
 
@@ -11,32 +11,35 @@ def create_inventory(config, maxquantity=1000):
 
     A random value between 0 and maxquantity (1000 by default) will be used.
     """
-    Inventory = Model.get('stock.inventory')
-    InventoryLine = Model.get('stock.inventory.line')
-    Location = Model.get('stock.location')
-    Product = Model.get('product.product')
+    Inventory = Pool().get('stock.inventory')
+    InventoryLine = Pool().get('stock.inventory.line')
+    Location = Pool().get('stock.location')
+    Product = Pool().get('product.product')
 
-    location = Location.find([('type', '=', 'warehouse')])[0].storage_location
+    location = Location.search([('type', '=', 'warehouse')])[0].storage_location
 
     inventory = Inventory()
     inventory.location = location
     inventory.save()
-    products = Product.find([
+    products = Product.search([
             ('type', '=', 'goods'),
             ('consumable', '=', False),
             ])
     products = random.sample(products, int(0.8 * len(products)))
 
+    inventory_lines = []
     for product in products:
         inventory_line = InventoryLine()
-        inventory.lines.append(inventory_line)
         inventory_line.product = product
         inventory_line.quantity = random.randrange(maxquantity)
         inventory_line.expected_quantity = 0.0
-    inventory.save()
-    Inventory.confirm([inventory.id], config.context)
+        inventory_lines.append(inventory_line)
 
-def process_customer_shipments(config):
+    inventory.lines = inventory_lines
+    inventory.save()
+    Inventory.confirm([inventory])
+
+def process_customer_shipments():
     """
     It randomly processes waiting customer shipments.
 
@@ -45,19 +48,18 @@ def process_customer_shipments(config):
     90% of the assigned ones are packed
     90% of the packed ones are done
     """
-    Shipment = Model.get('stock.shipment.out')
-    shipments = Shipment.find([('state', '=', 'waiting')])
-    shipments = [x.id for x in shipments]
+    Shipment = Pool().get('stock.shipment.out')
+    shipments = Shipment.search([('state', '=', 'waiting')])
 
     shipments = random.sample(shipments, int(0.8 * len(shipments)))
     for shipment in shipments:
-        Shipment.assign_try([shipment], config.context)
+        Shipment.assign_try([shipment])
     shipments = random.sample(shipments, int(0.9 * len(shipments)))
-    Shipment.pack(shipments, config.context)
+    Shipment.pack(shipments)
     shipments = random.sample(shipments, int(0.9 * len(shipments)))
-    Shipment.done(shipments, config.context)
+    Shipment.done(shipments)
 
-def process_supplier_shipments(config):
+def process_supplier_shipments():
     """
     It randomly processes waiting supplier shipments.
 
@@ -65,11 +67,11 @@ def process_supplier_shipments(config):
     90% are added to a shipment and set as received
     90% of those shipments are set as done
     """
-    Shipment = Model.get('stock.shipment.in')
-    Purchase = Model.get('purchase.purchase')
+    Shipment = Pool().get('stock.shipment.in')
+    Purchase = Pool().get('purchase.purchase')
 
     shipments = []
-    purchases = Purchase.find([('state', '=', 'confirmed')])
+    purchases = Purchase.search([('state', '=', 'confirmed')])
     purchases = random.sample(purchases, int(0.9 * len(purchases)))
     for purchase in purchases:
         shipment = Shipment()
@@ -83,6 +85,6 @@ def process_supplier_shipments(config):
                 move.shipment = shipment
                 move.save()
 
-    Shipment.receive([x.id for x in shipments], config.context)
+    Shipment.receive(shipments)
     shipments = random.sample(shipments, int(0.9 * len(shipments)))
-    Shipment.done([x.id for x in shipments], config.context)
+    Shipment.done(shipments)

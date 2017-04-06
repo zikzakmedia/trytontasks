@@ -1,0 +1,1 @@
+Purchase ${record.state in ['draft','quotation'] and 'Request' or 'Order'} ${record.reference or record.party.name}

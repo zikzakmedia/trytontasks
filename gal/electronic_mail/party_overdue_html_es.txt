@@ -1,0 +1,18 @@
+Estimado Sr./Sra. ${record.name},
+
+Esta es la relación de pagos que nos constan pendientes de ${record.name}:
+
+Fecha       Importe  Documento Descripción
+#for line in record.receivable_lines
+${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} ${' '*(8-len(str(line.debit-line.credit)))} ${line.debit-line.credit}€  ${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''} ${line.description}
+#end
+#for line in record.payable_lines
+${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} ${' '*(8-len(str(line.debit-line.credit)))} ${line.debit-line.credit}€  ${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''} ${line.description}
+#end
+
+La deuda total es de ${record.receivable-record.payable}€
+La deuda total ya vencida es de ${record.receivable_today-record.payable_today}€
+
+Les agradeceríamos que comprobaran esta información con su departamento de contabilidad y que realizaran los pagos pendientes lo más pronto posible.
+
+Atentamente,

@@ -1,7 +1,7 @@
 #This file is part of trytontasks_gal. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 import random
-from proteus import Model, Wizard
+from trytond.pool import Pool
 
 def create_boms(name='pc', inputcount=10, inputquantity=10):
     """
@@ -14,20 +14,20 @@ def create_boms(name='pc', inputcount=10, inputquantity=10):
     database.
     """
 
-    Product = Model.get('product.product')
-    BOM = Model.get('production.bom')
-    Input = Model.get('production.bom.input')
-    Output = Model.get('production.bom.output')
-    ProductBOM = Model.get('product.product-production.bom')
+    Product = Pool().get('product.product')
+    BOM = Pool().get('production.bom')
+    Input = Pool().get('production.bom.input')
+    Output = Pool().get('production.bom.output')
+    ProductBOM = Pool().get('product.product-production.bom')
 
-    products = Product.find([])
+    products = Product.search([])
     products = [x.id for x in products]
     if name:
-        to_produce = Product.find([('name', 'ilike', '%' + name + '%')])
+        to_produce = Product.search([('name', 'ilike', '%' + name + '%')])
     else:
         to_produce = random.sample(products, int(0.2 * len(products)))
-        to_produce = Product.find([('id', 'in', to_produce)])
-    to_purchase = Product.find([('id', 'not in', [x.id for x in to_produce])])
+        to_produce = Product.search([('id', 'in', to_produce)])
+    to_purchase = Product.search([('id', 'not in', [x.id for x in to_produce])])
     for product in to_produce:
         product.purchasable = False
 
@@ -38,22 +38,31 @@ def create_boms(name='pc', inputcount=10, inputquantity=10):
         bom.name += product.template.name
 
         # Use sample because product must be unique per BOM
+        bom_inputs = []
         for input_product in random.sample(to_purchase, random.randrange(1, inputcount)):
             input_ = Input()
-            bom.inputs.append(input_)
             input_.product = input_product
             input_.quantity = random.randrange(1, inputquantity)
+            input_.on_change_product()
+            bom_inputs.append(input_)
+        bom.inputs = bom_inputs
 
         output = Output()
-        bom.outputs.append(output)
         output.product = product
         output.quantity = 1
+        output.on_change_product()
+        bom.outputs = [output]
         bom.save()
 
         pb = ProductBOM()
         pb.bom = bom
-        product.boms.append(pb)
+        product.boms = [pb]
         product.save()
 
 def create_production_requests():
-    Wizard('production.create_request').execute('create_')
+    CreateRequest = Pool().get('production.create_request', type='wizard')
+
+    # TODO create order points
+    session_id, _, _ = CreateRequest.create()
+    load = CreateRequest(session_id)
+    load.transition_create_()

@@ -10,11 +10,16 @@ from .sao import SaoCollection
 from .server import ServerCollection
 
 try:
-    from gal import GalCollection
     from userdoc import UserDocCollection
     required_proteus = True
 except:
     required_proteus = False
+
+try:
+    from gal import GalCollection
+    required_trytond = True
+except:
+    required_trytond = False
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -30,5 +35,7 @@ ns.add_collection(SaoCollection, 'sao')
 ns.add_collection(ServerCollection, 'server')
 
 if required_proteus:
-    ns.add_collection(GalCollection, 'gal')
     ns.add_collection(UserDocCollection, 'doc')
+
+if required_trytond:
+    ns.add_collection(GalCollection, 'gal')

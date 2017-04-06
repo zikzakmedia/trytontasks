@@ -1,0 +1,18 @@
+Dear Mr./Ms. ${record.name},
+
+This is the list of overdue payments of ${record.name}:
+
+Date        Amount   Document  Description
+#for line in record.receivable_lines
+${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} ${' '*(8-len(str(line.debit-line.credit)))} ${line.debit-line.credit}€  ${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''} ${line.description}
+#end
+#for line in record.payable_lines
+${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} ${' '*(8-len(str(line.debit-line.credit)))} ${line.debit-line.credit}€  ${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''} ${line.description}
+#end
+
+Total debt is ${record.receivable-record.payable}€
+Total overdue debt is ${record.receivable_today-record.payable_today}€
+
+We would appreciate checked this information with your accounting department and to make overdue payments as soon as possible.
+
+Sincerely,

@@ -5,8 +5,8 @@ import datetime
 import random
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
-from proteus import Model, Wizard
-from .utils import *
+from trytond.pool import Pool
+from utils import *
 
 TODAY = datetime.date.today()
 
@@ -14,10 +14,11 @@ def create_taxes():
     """
     Create Taxes
     """
-    Tax = Model.get('account.tax')
-    Account = Model.get('account.account')
+    pool = Pool()
+    Tax = pool.get('account.tax')
+    Account = pool.get('account.account')
 
-    accounts = Account.find([
+    accounts = Account.search([
         ('kind', 'not in', ['view', 'receivable', 'payable'])])
 
     tax = Tax()
@@ -46,17 +47,19 @@ def create_account_chart(company=None, module=None, fs_id=None, digits=None):
     If no 'module' and 'fs_id' are given, the last template chart created is
     used.
     """
-    AccountTemplate = Model.get('account.account.template')
-    Account = Model.get('account.account')
-    Company = Model.get('company.company')
-    ModelData = Model.get('ir.model.data')
+    pool = Pool()
+    AccountTemplate = pool.get('account.account.template')
+    Account = pool.get('account.account')
+    Company = pool.get('company.company')
+    ModelData = pool.get('ir.model.data')
+    CreateChart = pool.get('account.create_chart', type='wizard')
 
-    root_accounts = Account.find([('parent', '=', None)])
+    root_accounts = Account.search([('parent', '=', None)])
     if root_accounts:
         return
 
     if module and fs_id:
-        data = ModelData.find([
+        data = ModelData.search([
                 ('module', '=', module),
                 ('fs_id', '=', fs_id),
                 ], limit=1)
@@ -66,61 +69,50 @@ def create_account_chart(company=None, module=None, fs_id=None, digits=None):
         template = data[0].db_id
         template = AccountTemplate(template)
     else:
-        template, = AccountTemplate.find([('parent', '=', None)],
+        template, = AccountTemplate.search([('parent', '=', None)],
             order=[('id', 'DESC')], limit=1)
 
     if company:
         domain = [('party.name', '=', company),]
     else:
         domain =[]
-    company, = Company.find(domain)
+    company, = Company.search(domain)
 
-    create_chart = Wizard('account.create_chart')
-    create_chart.execute('account')
-    create_chart.form.account_template = template
-    create_chart.form.company = company
+    session_id, _, _ = CreateChart.create()
+    create_chart = CreateChart(session_id)
+    create_chart.account.account_template = template
+    create_chart.account.company = company
     if digits:
-        create_chart.form.account_code_digits = digits
-    create_chart.execute('create_account')
-
-    receivable = Account.find([
+        create_chart.account.account_code_digits = digits
+    create_chart.transition_create_account()
+    receivable, = Account.search([
             ('kind', '=', 'receivable'),
             ('company', '=', company.id),
-            ])
-    receivable = receivable[0]
-    payable = Account.find([
+            ],
+        limit=1)
+    payable, = Account.search([
             ('kind', '=', 'payable'),
             ('company', '=', company.id),
-            ])[0]
-    #revenue, = Account.find([
-    #        ('kind', '=', 'revenue'),
-    #        ('company', '=', company.id),
-    #        ])
-    #expense, = Account.find([
-    #        ('kind', '=', 'expense'),
-    #        ('company', '=', company.id),
-    #        ])
-    #cash, = Account.find([
-    #        ('kind', '=', 'other'),
-    #        ('company', '=', company.id),
-    #        ('name', '=', 'Main Cash'),
-    #        ])
-    create_chart.form.account_receivable = receivable
-    create_chart.form.account_payable = payable
-    create_chart.execute('create_properties')
+            ],
+        limit=1)
+    create_chart.properties.company = company
+    create_chart.properties.account_receivable = receivable
+    create_chart.properties.account_payable = payable
+    create_chart.transition_create_properties()
 
-def create_fiscal_year(config, company=None, year=None):
+def create_fiscal_year(company=None, year=None):
     """
     Creates a new fiscal year with monthly periods and the appropriate
     invoice sequences for the given company.
 
     If no year is specified the current year is used.
     """
-    FiscalYear = Model.get('account.fiscalyear')
-    Module = Model.get('ir.module')
-    Sequence = Model.get('ir.sequence')
-    SequenceStrict = Model.get('ir.sequence.strict')
-    Company = Model.get('company.company')
+    pool = Pool()
+    FiscalYear = pool.get('account.fiscalyear')
+    Module = pool.get('ir.module')
+    Sequence = pool.get('ir.sequence')
+    SequenceStrict = pool.get('ir.sequence.strict')
+    Company = pool.get('company.company')
 
     if year is None:
         year = TODAY.year
@@ -130,12 +122,12 @@ def create_fiscal_year(config, company=None, year=None):
         domain = [('party.name', '=', company),]
     else:
         domain =[]
-    company, = Company.find(domain)
+    company, = Company.search(domain, limit=1)
 
     installed_modules = [m.name
-        for m in Module.find([('state', '=', 'activated')])]
+        for m in Module.search([('state', '=', 'activated')])]
 
-    post_move_sequence = Sequence.find([
+    post_move_sequence = Sequence.search([
             ('name', '=', '%s' % year),
             ('code', '=', 'account_move'),
             ('company', '=', company.id),
@@ -147,7 +139,7 @@ def create_fiscal_year(config, company=None, year=None):
             code='account.move', company=company)
         post_move_sequence.save()
 
-    fiscalyear = FiscalYear.find([
+    fiscalyear = FiscalYear.search([
             ('name', '=', '%s' % year),
             ('company', '=', company.id),
             ])
@@ -164,7 +156,7 @@ def create_fiscal_year(config, company=None, year=None):
                     ('in_invoice_sequence', 'Supplier Invoice'),
                     ('out_credit_note_sequence', 'Customer Credit Note'),
                     ('in_credit_note_sequence', 'Supplier Credit Note')):
-                sequence = SequenceStrict.find([
+                sequence = SequenceStrict.search([
                         ('name', '=', '%s %s' % (name, year)),
                         ('code', '=', 'account.invoice'),
                         ('company', '=', company.id),
@@ -181,7 +173,7 @@ def create_fiscal_year(config, company=None, year=None):
         fiscalyear.save()
 
     if not fiscalyear.periods:
-        FiscalYear.create_period([fiscalyear.id], config.context)
+        FiscalYear.create_period([fiscalyear])
 
     return fiscalyear
 
@@ -192,8 +184,9 @@ def create_payment_term(name, type='remainder', percentage=None, divisor=None,
     Creates a payment term with the supplied values.
     Default values are to create a Cash payment term
     """
-    Term = Model.get('account.invoice.payment_term')
-    TermLine = Model.get('account.invoice.payment_term.line')
+    pool = Pool()
+    Term = pool.get('account.invoice.payment_term')
+    TermLine = pool.get('account.invoice.payment_term.line')
 
     term = Term()
     term.name = name
@@ -224,30 +217,45 @@ def create_payment_terms():
     - 60 days
     - 90 days
     """
-    Term = Model.get('account.invoice.payment_term')
-    TermLine = Model.get('account.invoice.payment_term.line')
+    PaymentTerm =  Pool().get('account.invoice.payment_term')
 
-    term = Term()
-    term.name = '30 D'
-    term.active = True
-    line = TermLine()
-    line.months = 1
-    term.lines.append(line)
-    term.save()
-
-    term = Term()
-    term.name = '60 D'
-    line = TermLine()
-    line.months = 2
-    term.lines.append(line)
-    term.save()
-
-    term = Term()
-    term.name = '90 D'
-    line = TermLine()
-    line.months = 3
-    term.lines.append(line)
-    term.save()
+    PaymentTerm.create([{
+        'name': '30 D',
+        'lines': [
+            ('create', [{
+                'sequence': 0,
+                'type': 'remainder',
+                'relativedeltas': [('create', [{
+                                'months': 1,
+                                },
+                            ]),
+                    ],
+                }])]
+        }, {
+        'name': '60 D',
+        'lines': [
+            ('create', [{
+                'sequence': 0,
+                'type': 'remainder',
+                'relativedeltas': [('create', [{
+                                'months': 2,
+                                },
+                            ]),
+                    ],
+                }])]
+        }, {
+        'name': '90 D',
+        'lines': [
+            ('create', [{
+                'sequence': 0,
+                'type': 'remainder',
+                'relativedeltas': [('create', [{
+                                'months': 3,
+                                },
+                            ]),
+                    ],
+                }])]
+        }])
 
 def create_payment_types(language='en'):
     """
@@ -257,7 +265,7 @@ def create_payment_types(language='en'):
     - Cash
     - Credit Card
     """
-    Type = Model.get('account.payment.type')
+    Type =  Pool().get('account.payment.type')
 
     names = {
         'bank-transfer': {
@@ -324,17 +332,17 @@ def create_payment_types(language='en'):
         t.account_bank = 'none'
     t.save()
 
-def process_customer_invoices(config):
+def process_customer_invoices():
     """
     It randomly confirms customer invoices.
 
     90% of customer invoices are confirmed.
     """
-    Invoice = Model.get('account.invoice')
+    Invoice =  Pool().get('account.invoice')
 
     payment_types = get_payment_types('receivable')
 
-    invoices = Invoice.find([
+    invoices = Invoice.search([
             ('type', '=', 'out'),
             ('state', '=', 'draft'),
             ('payment_type.account_bank', '=', 'none'),
@@ -353,4 +361,4 @@ def process_customer_invoices(config):
                     invoice.payment_type = random.choice(payment_types)
         invoice.save()
 
-    Invoice.post([x.id for x in invoices], config.context)
+    Invoice.post(invoices)

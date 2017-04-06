@@ -4,14 +4,14 @@ import os
 import xmltodict
 import random
 from decimal import Decimal
-from proteus import Model
-from .utils import *
+from trytond.pool import Pool
+from utils import *
 
 def create_product_category(name):
     """
     Creates product category with the supplied name.
     """
-    Category = Model.get('product.category')
+    Category = Pool().get('product.category')
     category = Category(name=name)
     category.save()
 
@@ -19,7 +19,7 @@ def create_product_categories(count=20):
     """
     Creates 'count' (20 by default) product categories.
     """
-    Category = Model.get('product.category')
+    Category = Pool().get('product.category')
     for name in ('A', 'B', 'C', 'D', 'E'):
         category = Category(name=name)
         category.save()
@@ -29,20 +29,20 @@ def create_product(name, code="", template=None, cost_price=None,
     """
     Create product
     """
-    ProductUom = Model.get('product.uom')
-    Product = Model.get('product.product')
-    ProductTemplate = Model.get('product.template')
-    Category = Model.get('product.category')
+    ProductUom = Pool().get('product.uom')
+    Product = Pool().get('product.product')
+    ProductTemplate = Pool().get('product.template')
+    Category = Pool().get('product.category')
 
     if module_installed('account'):
-        Tax = Model.get('account.tax')
+        Tax = Pool().get('account.tax')
 
-    categories = Category.find([])
+    categories = Category.search([])
     category = None
     if categories:
         category = random.choice(categories)
 
-    product = Product.find([('name', '=', name), ('code', '=', code)])
+    product = Product.search([('name', '=', name), ('code', '=', code)])
     if product:
         return product[0]
 
@@ -56,36 +56,41 @@ def create_product(name, code="", template=None, cost_price=None,
         unit = ProductUom(1)
 
     if template is None:
-        template = ProductTemplate()
+        default_values = ProductTemplate.default_get(
+            ProductTemplate._fields.keys(), with_rec_name=False)
+        template = ProductTemplate(**default_values)
         template.name = name
         template.default_uom = unit
         template.type = type
         template.consumable = consumable
         template.list_price = list_price
         template.cost_price = cost_price
-        template.categories.append(category)
+        template.categories = [category]
+
         if hasattr(template, 'salable'):
             template.salable = True
+            template.sale_uom = unit
         if hasattr(template, 'purchasable'):
             template.purchasable = True
+            template.purchase_uom = unit
 
         if (hasattr(template, 'account_expense')
                 or hasattr(template, 'account_revenue')):
-            Company = Model.get('company.company')
+            Company = Pool().get('company.company')
             company = Company(1)
             template.accounts_category = False
             template.taxes_category = False
         if hasattr(template, 'account_expense'):
-            Account = Model.get('account.account')
-            expense = Account.find([
+            Account = Pool().get('account.account')
+            expense = Account.search([
                 ('kind', '=', 'expense'),
                 ('company', '=', company.id),
                 ])
             if expense:
                 template.account_expense = expense[0]
         if hasattr(template, 'account_revenue'):
-            Account = Model.get('account.account')
-            revenue = Account.find([
+            Account = Pool().get('account.account')
+            revenue = Account.search([
                 ('kind', '=', 'revenue'),
                 ('company', '=', company.id),
                 ])
@@ -93,42 +98,46 @@ def create_product(name, code="", template=None, cost_price=None,
                 template.account_revenue = revenue[0]
         if module_installed('account_es'):
             if hasattr(template, 'customer_taxes'):
-                tax, = Tax.find([
+                tax, = Tax.search([
                         ('template', '=',
                             get_object('account_es', 'iva_rep_21').id)
                         ])
-                template.customer_taxes.append(tax)
+                template.customer_taxes = [tax]
             if hasattr(template, 'supplier_taxes'):
-                tax, = Tax.find([
+                tax, = Tax.search([
                         ('template', '=',
                             get_object('account_es', 'iva_sop_21').id)
                         ])
-                template.supplier_taxes.append(tax)
+                template.supplier_taxes = [tax]
         elif module_installed('account_es_pyme'):
             if hasattr(template, 'customer_taxes'):
-                tax, = Tax.find([
+                tax, = Tax.search([
                         ('template', '=',
                             get_object('account_es_pyme', 'iva_pymes_rep_21').id)
                         ])
-                template.customer_taxes.append(tax)
+                template.customer_taxes = [tax]
             if hasattr(template, 'supplier_taxes'):
-                tax, = Tax.find([
+                tax, = Tax.search([
                         ('template', '=',
                             get_object('account_es_pyme', 'iva_pymes_sop_21').id)
                         ])
-                template.supplier_taxes.append(tax)
+                template.supplier_taxes = [tax]
         else:
             if hasattr(template, 'customer_taxes'):
-                taxes = Tax.find([])
+                taxes = Tax.search([], limit=1)
                 if taxes:
-                    template.customer_taxes.append(taxes[0])
+                    tax, = taxes
+                    template.customer_taxes = [tax]
             if hasattr(template, 'supplier_taxes'):
-                taxes = Tax.find([])
+                taxes = Tax.search([], limit=1)
                 if taxes:
-                    template.supplier_taxes.append(taxes[0])
-        template.products[0].code = code
+                    tax, = taxes
+                    template.supplier_taxes = [tax]
+        product = Product()
+        product.code = code
+        template.products = [product]
         template.save()
-        product = template.products[0]
+        product, = template.products
     else:
         product = Product()
         product.template = template
@@ -157,10 +166,10 @@ def create_price_lists(language='en', count=5, productcount=10, categorycount=2)
     """
     Creates 'count' pricelists using random products and quantities
     """
-    PriceList = Model.get('product.price_list')
-    PriceListLine = Model.get('product.price_list.line')
-    Product = Model.get('product.product')
-    Category = Model.get('product.category')
+    PriceList = Pool().get('product.price_list')
+    PriceListLine = Pool().get('product.price_list.line')
+    Product = Pool().get('product.product')
+    Category = Pool().get('product.category')
     category_module = module_installed('product_price_list_category')
 
     price_list_name = {
@@ -169,37 +178,39 @@ def create_price_lists(language='en', count=5, productcount=10, categorycount=2)
         'es': 'Tarifa',
         }
 
-    categories = Category.find()
+    categories = Category.search([])
     if module_installed('sale'):
         domain = [('salable', '=', True)]
     else:
         domain = []
-    products = Product.find(domain)
+    products = Product.search(domain)
     for c in xrange(count):
         price_list = PriceList()
         price_list.name = price_list_name[language] +" "+ str(c)
+        lines = []
 
         sequence = 1
         for lc in xrange(random.randrange(1, productcount)):
             line = PriceListLine()
-            price_list.lines.append(line)
             line.sequence = sequence
             line.product = random.choice(products)
             line.formula = 'unit_price * 0.90'
+            lines.append(line)
             sequence += 1
 
         if category_module:
             for lc in xrange(random.randrange(1, categorycount)):
                 line = PriceListLine()
-                price_list.lines.append(line)
                 line.sequence = sequence
                 line.category = random.choice(categories)
                 line.formula = 'unit_price * 0.95'
                 sequence += 1
+                lines.append(line)
 
         line = PriceListLine()
-        price_list.lines.append(line)
         line.sequence = sequence
         line.formula = 'unit_price'
+        lines.append(line)
 
+        price_list.lines = lines
         price_list.save()

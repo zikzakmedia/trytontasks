@@ -1,0 +1,17 @@
+Dear Mr./Ms. ${record.invoice_address.name or ''},
+
+#if record.state == 'draft'
+Attached we send the requested quotation${record.description and ' concerning "'+record.description+'"' or ''}.
+#end
+#if record.state == 'validated'
+Attached we send the ProForma invoice${record.description and ' concerning "'+record.description+'"' or ''}.
+#end
+#if record.state not in ['draft', 'validated']
+Attached we send the invoice dated ${str(record.invoice_date)[8:]}-${str(record.invoice_date)[5:7]}-${str(record.invoice_date)[:4]} and number ${record.number}${record.description and ', concerning "'+record.description+'"' or ''}.
+#end
+
+The document is in PDF format. To read it correctly you must have installed a PDF reader program (Adobe Acrobat Reader or similar) on your computer.
+
+If you want any further clarification you can contact by e-mail to ${record.company.party.get_mechanism('email') or 'user@demo_server.com'}.
+
+Sincerely,

@@ -1,0 +1,48 @@
+<p>Dear Mr./Ms. ${record.invoice_address and record.invoice_address.name or ''},</p>
+
+#if record.state == 'draft'
+<p>Attached we send the requested quotation${record.description and ' concerning "'+record.description+'"' or ''}.</p>
+#end
+#if record.state == 'quotation'
+<p>Attached we send the requested quotation${record.description and ' concerning "'+record.description+'"' or ''} with reference ${record.reference}.</p>
+#end
+#if record.state not in ['draft', 'quotation']
+<p>Attached we send the order${record.description and ' concerning "'+record.description+'"' or ''} dated ${str(record.sale_date)[8:]}-${str(record.sale_date)[5:7]}-${str(record.sale_date)[:4]} with reference ${record.reference}.</p>
+#end
+
+<table class="table table-condensed" cellpadding="3" width="100%">
+  <thead>
+    <tr>
+      <th>Quantity</th>
+      <th>Product</th>
+      <th>Price</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+  #for line in record.lines
+    <tr>
+      <td>${line.quantity or ''}</td>
+      <td>${line.description or ''}</td>
+      <td style="text-align: right; color:#006699;">${line.unit_price and round(line.unit_price, 2) or ''}</td>
+      <td style="text-align: right; color:#006699;">${line.amount or ''}</td>
+    </tr>
+  #end
+    <tr>
+      <td colspan="4" style="text-align: right; color:#006699;">
+        <hr/>
+          <ul style="list-style: none";>
+            <li><strong>Amount:</strong> ${record.untaxed_amount}</li>
+            <li><strong>Taxes:</strong> ${record.tax_amount}</li>
+            <li><strong>Total:</strong> ${record.total_amount}</li>
+          </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The document is in PDF format. To read it correctly you must have installed a PDF reader program (Adobe Acrobat Reader or similar) on your computer.</p>
+
+<p>If you want any further clarification you can contact by e-mail to ${record.company.party.get_mechanism('email') or 'user@demo_server.com'}.</p>
+
+<p>Sincerely,</p>

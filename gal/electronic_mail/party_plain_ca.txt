@@ -1,0 +1,5 @@
+${record.name}
+
+Estimat Sr./Sra.,
+
+Atentament,

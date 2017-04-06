@@ -1,0 +1,5 @@
+<h2>${record.name}</h2>
+
+<p>Estimado Sr./Sra.,</p>
+
+<p>Atentamente,</p>

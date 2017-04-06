@@ -1,0 +1,21 @@
+<p>Dear Mr./Ms. ${record.name}</p>
+
+<p>This is the list of overdue payments of ${record.name}:</p>
+
+<table cellpadding="5">
+<tr><td>Date</td><td>Amount</td><td>Document</td><td>Description</td></tr>
+#for line in record.receivable_lines
+<tr><td>${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} ${' '*(8-len(str(line.debit-line.credit)))}</td><td align="right">${line.debit-line.credit}€</td><td>${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''}</td><td>${line.description}</td></tr>
+#end
+#for line in record.payable_lines
+<tr><td>${str(line.maturity_date)[8:]}-${str(line.maturity_date)[5:7]}-${str(line.maturity_date)[:4]} ${' '*(8-len(str(line.debit-line.credit)))}</td><td align="right">${line.debit-line.credit}€</td><td>${line.origin and getattr(line.origin, 'rec_name', False) and line.origin.rec_name or ''}</td><td>${line.description}</td></tr>
+#end
+</table>
+
+<p>Total debt is ${record.receivable-record.payable}€</p>
+
+<p>Total overdue debt is ${record.receivable_today-record.payable_today}€</p>
+
+<p>We would appreciate checked this information with your accounting department and to make overdue payments as soon as possible.</p>
+
+<p>Sincerely</p>
