@@ -10,7 +10,6 @@ to_activated:
   - account_financial_statement
   - account_financial_statement_es
   - account_invoice
-  - account_invoice_consecutive
   - account_invoice_discount
   - account_invoice_jreport
   - account_invoice_line_standalone
