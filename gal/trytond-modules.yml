@@ -2,8 +2,11 @@ to_activated:
   - account
   - account_bank
   - account_bank_statement
+  - account_bank_statement_account
   - account_bank_statement_es_csb43
   - account_bank_statement_counterpart
+  - account_bank_statement_payment
+  - account_bank_statement_payment_sepa
   - account_code_digits
   - account_credit_limit
   - account_es_pyme
@@ -23,11 +26,15 @@ to_activated:
   - account_invoice_total
   - account_invoice_visible_payments
   - account_jasper_reports
+  - account_move_draft
   - account_move_line_related
   - account_move_renumber
   - account_parent_code
   - account_payment
+  - account_payment_clearing
   - account_payment_es
+  - account_payment_sepa
+  - account_payment_sepa_es
   - account_payment_type
   - account_payment_wizard
   - account_product
