@@ -97,42 +97,37 @@ def create_product(name, code="", template=None, cost_price=None,
             if revenue:
                 template.account_revenue = revenue[0]
         if module_installed('account_es'):
-            if hasattr(template, 'customer_taxes'):
-                tax, = Tax.search([
-                        ('template', '=',
-                            get_object('account_es', 'iva_rep_21').id)
-                        ])
-                template.customer_taxes = [tax]
-            if hasattr(template, 'supplier_taxes'):
-                tax, = Tax.search([
-                        ('template', '=',
-                            get_object('account_es', 'iva_sop_21').id)
-                        ])
-                template.supplier_taxes = [tax]
+            tax, = Tax.search([
+                    ('template', '=',
+                        get_object('account_es', 'iva_rep_21').id)
+                    ])
+            template.customer_taxes = [tax]
+            tax, = Tax.search([
+                    ('template', '=',
+                        get_object('account_es', 'iva_sop_21').id)
+                    ])
+            template.supplier_taxes = [tax]
         elif module_installed('account_es_pyme'):
-            if hasattr(template, 'customer_taxes'):
-                tax, = Tax.search([
-                        ('template', '=',
-                            get_object('account_es_pyme', 'iva_pymes_rep_21').id)
-                        ])
+            tax, = Tax.search([
+                    ('template', '=',
+                        get_object('account_es_pyme', 'iva_pymes_rep_21').id)
+                    ])
+            template.customer_taxes = [tax]
+            tax, = Tax.search([
+                    ('template', '=',
+                        get_object('account_es_pyme', 'iva_pymes_sop_21').id)
+                    ])
+            template.supplier_taxes = [tax]
+        elif module_installed('account_product'):
+            taxes = Tax.search([], limit=1)
+            if taxes:
+                tax, = taxes
                 template.customer_taxes = [tax]
-            if hasattr(template, 'supplier_taxes'):
-                tax, = Tax.search([
-                        ('template', '=',
-                            get_object('account_es_pyme', 'iva_pymes_sop_21').id)
-                        ])
+            taxes = Tax.search([], limit=1)
+            if taxes:
+                tax, = taxes
                 template.supplier_taxes = [tax]
-        else:
-            if hasattr(template, 'customer_taxes'):
-                taxes = Tax.search([], limit=1)
-                if taxes:
-                    tax, = taxes
-                    template.customer_taxes = [tax]
-            if hasattr(template, 'supplier_taxes'):
-                taxes = Tax.search([], limit=1)
-                if taxes:
-                    tax, = taxes
-                    template.supplier_taxes = [tax]
+
         product = Product()
         product.code = code
         template.products = [product]

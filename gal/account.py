@@ -113,6 +113,7 @@ def create_fiscal_year(company=None, year=None):
     Sequence = pool.get('ir.sequence')
     SequenceStrict = pool.get('ir.sequence.strict')
     Company = pool.get('company.company')
+    InvoiceSequence = pool.get('account.fiscalyear.invoice_sequence')
 
     if year is None:
         year = TODAY.year
@@ -152,6 +153,8 @@ def create_fiscal_year(company=None, year=None):
         fiscalyear.company = company
         fiscalyear.post_move_sequence = post_move_sequence
         if 'account_invoice' in installed_modules:
+            invoice_sequence = InvoiceSequence()
+
             for attr, name in (('out_invoice_sequence', 'Customer Invoice'),
                     ('in_invoice_sequence', 'Supplier Invoice'),
                     ('out_credit_note_sequence', 'Customer Credit Note'),
@@ -169,7 +172,8 @@ def create_fiscal_year(company=None, year=None):
                         code='account.invoice',
                         company=company)
                     sequence.save()
-                setattr(fiscalyear, attr, sequence)
+                setattr(invoice_sequence, attr, sequence)
+            fiscalyear.invoice_sequences = [invoice_sequence]
         fiscalyear.save()
 
     if not fiscalyear.periods:
