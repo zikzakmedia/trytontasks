@@ -228,6 +228,28 @@ def forgotten(ctx, database, config_file=os.environ.get('TRYTOND_CONFIG')):
             cursor.execute(*ir_module.delete(where=ir_module.name.in_(to_delete)))
             logger.info( "Deleted: " + ', '.join(to_delete))
 
+@task
+def tests(ctx, module=None):
+    'Tests'
+    if module:
+        modules = [module]
+    else:
+        Config = read_config_file()
+        modules = Config.sections()
+        modules.sort()
+
+    Base = read_config_file('base.cfg')
+    bases = Base.sections()
+
+    processes = []
+    for module in modules:
+        if module in bases:
+            continue
+        logger.info( "Run Module " + t.bold(module) + " to test")
+        os.system('python %s/trytond/trytond/tests/run-tests.py -m %s' % (
+            os.path.dirname(os.path.realpath(__file__)).replace('/tasks', ''),
+            module))
+
 # Add Invoke Collections
 ModulesCollection = Collection()
 ModulesCollection.add_task(info)
@@ -235,3 +257,4 @@ ModulesCollection.add_task(clone)
 ModulesCollection.add_task(update)
 ModulesCollection.add_task(branches)
 ModulesCollection.add_task(forgotten)
+ModulesCollection.add_task(tests)
