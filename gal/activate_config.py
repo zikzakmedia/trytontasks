@@ -115,10 +115,7 @@ with Transaction().start(dbname, 1, context=context):
         create_payment_terms()
         if 'account_es' in (modules_activated and modules):
             module = 'account_es'
-            fs_id = 'pgc_0'
-        elif 'account_es_pyme' in (modules_activated and modules):
-            module = 'account_es_pyme'
-            fs_id = 'pgc_pymes_0'
+            fs_id = 'pgc_0_pyme' # pyme
         else:
             module = 'account'
             fs_id = 'account_template_root_%s' % language

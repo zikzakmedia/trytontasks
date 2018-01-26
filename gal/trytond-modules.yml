@@ -9,7 +9,9 @@ to_activated:
   - account_bank_statement_payment_sepa
   - account_code_digits
   - account_credit_limit
-  - account_es_pyme
+  - account_eu
+  - account_es
+  - account_es_es
   - account_financial_statement
   - account_financial_statement_es
   - account_invoice
