@@ -30,11 +30,6 @@ def wait_processes(processes, maximum=MAX_PROCESSES, exit_code=None):
                 exit_code.append(processes[i].exitcode)
             del processes[i]
 
-    try:
-        from trytond.config import config as CONFIG
-    except ImportError, e:
-        logger.error("%s trytond importation error: %s" % (sys.stderr, e.message))
-
 def set_context(database_name, config_file=os.environ.get('TRYTOND_CONFIG')):
     CONFIG.update_etc(config_file)
     if not Transaction().connection:

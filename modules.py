@@ -114,8 +114,12 @@ def _hg_branches(module, path, config_branch=None):
 
     logger.info(msg)
 
-@task
-def clone(ctx, config=None, branch=None):
+@task(help={
+    'config': 'Configuration file: config.cfg',
+    'branch': 'Repo branch. Default is "default"',
+    'master': 'If not is true, source repo is from hg.zzsaas.com'
+    })
+def clone(ctx, config=None, branch=None, master=False):
     '''Clone trytond modules'''
     Modules = read_config_file(config)
 
@@ -140,7 +144,7 @@ def clone(ctx, config=None, branch=None):
         logger.info( "Adding Module " + t.bold(module) + " to clone")
 
         func = hg_clone
-        p = Process(target=func, args=(url, repo_path, mod_branch))
+        p = Process(target=func, args=(url, repo_path, mod_branch, master))
         p.start()
         processes.append(p)
 

@@ -8,7 +8,7 @@ from blessings import Terminal
 t = Terminal()
 logger = logging.getLogger(__name__)
 
-def get_url(url):
+def get_url(url, master=False):
     files = ['~/.ssh/id_dsa', '~/.ssh/id_rsa']
     exists = False
     for f in files:
@@ -18,6 +18,9 @@ def get_url(url):
     if not exists:
         if url.startswith('ssh'):
             url = 'https' + url[3:]
+    if not master:
+        if 'hg.tryton.org' in url:
+            url = url.replace('hg.tryton.org', 'hg.zzsaas.com')
     return url
 
 def check_revision(client, module, revision, branch):
@@ -28,8 +31,8 @@ def check_revision(client, module, revision, branch):
         return -1
     return 0
 
-def hg_clone(url, path, branch="default", revision=None):
-    url = get_url(url)
+def hg_clone(url, path, branch="default", master=False, revision=None):
+    url = get_url(url, master)
     extended_args = ['--pull']
     if revision or branch:
         extended_args.append('-u')
