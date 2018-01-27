@@ -4,6 +4,7 @@ blessings
 genshi
 choice
 show
+python-sql>=0.9
 
 # gal
 functools32
