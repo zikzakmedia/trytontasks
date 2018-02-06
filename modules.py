@@ -7,7 +7,6 @@ import hgapi
 from invoke import Collection, task
 from blessings import Terminal
 from multiprocessing import Process
-from show import show
 from sql import Table
 from .scm import hg_clone, hg_update
 from .tools import wait_processes, set_context
@@ -82,7 +81,7 @@ def info(ctx, config=None):
             Config.get(module, 'path'),
             Config.get(module, 'branch'),
             )
-        show('{message}')
+        print(message)
 
 def _hg_branches(module, path, config_branch=None):
     client = hgapi.Repo(path)
