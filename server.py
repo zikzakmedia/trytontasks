@@ -11,6 +11,7 @@ import logging
 import random
 import string
 import os
+import getpass
 
 TEMPLATE_DIR = './config/templates'
 t = Terminal()
@@ -48,6 +49,7 @@ def configuration(ctx, name=None):
     vals['jasper'] = choice.Input('Port Jasper (8090)').ask()
     superpwd = choice.Input('Super Password', str).ask()
     vals['superpwd'] = crypt.crypt(superpwd, "".join(random.sample(string.ascii_letters + string.digits, 8)))
+    vals['user'] = getpass.getuser()
 
     tmpl = loader.load('trytond.conf', cls=NewTextTemplate)
     trytond = tmpl.generate(**vals).render()
