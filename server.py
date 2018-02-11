@@ -32,10 +32,10 @@ def configuration(ctx, name=None):
     vals = {}
     vals['name'] = name
     port = choice.Input('Port (8000)').ask() or 8000
-    nginx = choice.Binary('Nginx', False).ask()
+    nginx = choice.Binary('Nginx/Apache2', False).ask()
     if nginx:
-        vals['nginx'] = nginx
-        vals['wsgi'] = str(int(port) + 1) # 8001 
+        vals['nginx'] = port
+        vals['wsgi'] = str(int(port) + 1) # 8001
         port = str(int(port) + 2) # 8002
     vals['port'] = port
     vals['path'] = os.path.dirname(__file__).replace('tasks', '')
@@ -89,6 +89,27 @@ def configuration(ctx, name=None):
         trytond_logs = tmpl.generate(**vals).render()
         with open('etc/server-%s-logs.cfg' % name, 'w') as f:
             f.write(trytond_logs)
+
+        tmpl = loader.load('supervisor_trytond-apache.conf', cls=NewTextTemplate)
+        supervisor_apache2 = tmpl.generate(**vals).render()
+        with open('etc/supervisor-%s-apache.cfg' % name, 'w') as f:
+            f.write(supervisor_apache2)
+
+        tmpl = loader.load('apache2/apache2.conf', cls=NewTextTemplate)
+        apache2 = tmpl.generate(**vals).render()
+        with open('etc/apache2/apache2.conf', 'w') as f:
+            f.write(apache2)
+
+        tmpl = loader.load('apache2/ports.conf', cls=NewTextTemplate)
+        apache2_ports = tmpl.generate(**vals).render()
+        with open('etc/apache2/ports.conf', 'w') as f:
+            f.write(apache2_ports)
+
+        tmpl = loader.load('apache2/site-enabled.conf', cls=NewTextTemplate)
+        apache2_site_enabled = tmpl.generate(**vals).render()
+        with open('etc/apache2/sites-enabled/%s.conf' % name, 'w') as f:
+            f.write(apache2_site_enabled)
+
 
     logger.info(t.bold('Created configuration files'))
 
