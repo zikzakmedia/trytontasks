@@ -21,6 +21,7 @@ def get_url(url, master=False):
     if not master:
         if 'hg.tryton.org' in url:
             url = url.replace('hg.tryton.org', 'hg.zzsaas.com')
+            url = url.replace('modules', '')
     return url
 
 def check_revision(client, module, revision, branch):
