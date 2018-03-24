@@ -103,7 +103,6 @@ with Transaction().start(dbname, 1, context=context):
     company, = Company.search([], limit=1)
     company_id = company.id
 
-
 context['company'] = company_id
 with Transaction().start(dbname, 1, context=context):
 
@@ -113,12 +112,12 @@ with Transaction().start(dbname, 1, context=context):
         create_fiscal_year(year=last_year)
         create_fiscal_year()
         create_payment_terms()
-        if 'account_es' in (modules_activated and modules):
-            module = 'account_es'
+        if 'account_es_normal_pyme' in (modules_activated and modules):
+            module = 'account_es_normal_pyme'
             fs_id = 'pgc_0_pyme' # pyme
         else:
             module = 'account'
-            fs_id = 'account_template_root_%s' % language
+            fs_id = 'account_template_root_en'
         create_account_chart(module=module, fs_id=fs_id, digits=6)
 
 

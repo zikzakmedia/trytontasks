@@ -10,8 +10,7 @@ to_activated:
   - account_code_digits
   - account_credit_limit
   - account_eu
-  - account_es
-  - account_es_es
+  - account_es_normal_pyme
   - account_financial_statement
   - account_financial_statement_es
   - account_invoice
