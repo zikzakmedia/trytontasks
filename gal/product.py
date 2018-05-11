@@ -96,15 +96,15 @@ def create_product(name, code="", template=None, cost_price=None,
                 ])
             if revenue:
                 template.account_revenue = revenue[0]
-        if module_installed('account_es_normal_pyme'):
+        if module_installed('account_es'):
             tax, = Tax.search([
                     ('template', '=',
-                        get_object('account_es_normal_pyme', 'iva_rep_21_pyme').id)
+                        get_object('account_es', 'iva_rep_21').id)
                     ])
             template.customer_taxes = [tax]
             tax, = Tax.search([
                     ('template', '=',
-                        get_object('account_es_normal_pyme', 'iva_sop_21_pyme').id)
+                        get_object('account_es', 'iva_sop_21').id)
                     ])
             template.supplier_taxes = [tax]
         elif module_installed('account_product'):
