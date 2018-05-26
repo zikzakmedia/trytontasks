@@ -122,7 +122,7 @@ def dropdb(database):
     run(command)
 
 # Add Invoke Collections
-GalCollection = Collection()
+GalCollection = Collection('gal')
 GalCollection.add_task(create)
 GalCollection.add_task(install)
 GalCollection.add_task(demo)

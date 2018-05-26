@@ -104,7 +104,7 @@ def build(ctx, source_doc='doc-src', doc_path="doc", buildername='html'):
     logger.info(t.bold('Done'))
 
 # Add Invoke Collections
-UserDocCollection = Collection()
+UserDocCollection = Collection('doc')
 UserDocCollection.add_task(install)
 UserDocCollection.add_task(make)
 UserDocCollection.add_task(build)

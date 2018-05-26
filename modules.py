@@ -254,7 +254,7 @@ def tests(ctx, module=None):
             module))
 
 # Add Invoke Collections
-ModulesCollection = Collection()
+ModulesCollection = Collection('modules')
 ModulesCollection.add_task(info)
 ModulesCollection.add_task(clone)
 ModulesCollection.add_task(update)

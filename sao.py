@@ -28,6 +28,6 @@ def grunt(ctx):
     logger.info(t.bold('Done'))
 
 # Add Invoke Collections
-SaoCollection = Collection()
+SaoCollection = Collection('sao')
 SaoCollection.add_task(install)
 SaoCollection.add_task(grunt)

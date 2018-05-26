@@ -30,12 +30,12 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 ns = Collection()
-ns.add_collection(ModulesCollection, 'modules')
-ns.add_collection(SaoCollection, 'sao')
-ns.add_collection(ServerCollection, 'server')
+ns.add_collection(ModulesCollection)
+ns.add_collection(SaoCollection)
+ns.add_collection(ServerCollection)
 
 if required_proteus:
-    ns.add_collection(UserDocCollection, 'doc')
+    ns.add_collection(UserDocCollection)
 
 if required_trytond:
-    ns.add_collection(GalCollection, 'gal')
+    ns.add_collection(GalCollection)

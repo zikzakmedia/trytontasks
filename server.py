@@ -116,5 +116,5 @@ def configuration(ctx, name=None):
     logger.info(t.bold('Created configuration files'))
 
 # Add Invoke Collections
-ServerCollection = Collection()
+ServerCollection = Collection('server')
 ServerCollection.add_task(configuration)

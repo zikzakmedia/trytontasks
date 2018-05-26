@@ -1,4 +1,4 @@
-invoke>=0.13.0
+invoke>=1.0.0
 hgapi
 blessings
 genshi
