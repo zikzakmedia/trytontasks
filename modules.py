@@ -10,6 +10,7 @@ from multiprocessing import Process
 from sql import Table
 from .scm import hg_clone, hg_update
 from .tools import wait_processes, set_context
+from . import patches
 
 try:
     from trytond.transaction import Transaction
@@ -248,10 +249,34 @@ def tests(ctx, module=None):
     for module in modules:
         if module in bases:
             continue
-        logger.info( "Run Module " + t.bold(module) + " to test")
+        logger.info("Run Module " + t.bold(module) + " to test")
         os.system('python %s/trytond/trytond/tests/run-tests.py -m %s' % (
             os.path.dirname(os.path.realpath(__file__)).replace('/tasks', ''),
             module))
+
+@task
+def fetch(ctx):
+    '''Fetch env (update trytond, all modules and patches)'''
+    logger.info(t.bold('Fetch (patches and update)'))
+    logger.info(t.bold('Pop patches...'))
+    patches._pop()
+
+    logger.info(t.bold('Pull Update...'))
+    update(ctx)
+
+    logger.info(t.bold('Cloning...'))
+    clone(ctx)
+
+    logger.info(t.bold('Push patches...'))
+    patches._push()
+
+    logger.info(t.bold('Updating requirements...'))
+    os.system('pip install -r config/requirements.txt')
+
+    if os.path.isfile('requirements.txt'):
+        os.system('pip install -r requirements.txt')
+
+    logger.info(t.bold('Fetched.'))
 
 # Add Invoke Collections
 ModulesCollection = Collection('modules')
@@ -261,3 +286,4 @@ ModulesCollection.add_task(update)
 ModulesCollection.add_task(branches)
 ModulesCollection.add_task(forgotten)
 ModulesCollection.add_task(tests)
+ModulesCollection.add_task(fetch)

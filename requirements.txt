@@ -4,6 +4,7 @@ blessings
 genshi
 choice
 python-sql>=0.9
+python-quilt
 
 # gal
 functools32
