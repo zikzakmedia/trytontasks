@@ -7,6 +7,7 @@ to_activated:
   - account_bank_statement_counterpart
   - account_bank_statement_payment
   - account_bank_statement_payment_sepa
+  - account_invoice_company_currency
   - account_code_digits
   - account_credit_limit
   - account_es
