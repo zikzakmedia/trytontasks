@@ -3,8 +3,8 @@
 import datetime
 from dateutil.relativedelta import relativedelta
 from trytond.pool import Pool
-from utils import *
-from party import create_party
+from .utils import *
+from .party import create_party
 
 TODAY = datetime.date.today()
 
@@ -37,7 +37,7 @@ def create_opportunities(count=100, linecount=10):
         employee.party = party
         employee.save()
 
-    for x in xrange(count):
+    for x in range(count):
         opp = Opportunity()
         party = random.choice(parties)
         product = random.choice(products)
@@ -55,7 +55,7 @@ def create_opportunities(count=100, linecount=10):
         opp.employee = employee
 
         lines = []
-        for lc in xrange(random.randrange(1, linecount)):
+        for lc in range(random.randrange(1, linecount)):
             line = OpportunityLine()
             line.product = random.choice(products)
             line.quantity = random.randrange(1, 20)

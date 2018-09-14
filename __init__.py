@@ -11,13 +11,13 @@ from .server import ServerCollection
 from .patches import QuiltCollection
 
 try:
-    from userdoc import UserDocCollection
+    from .userdoc import UserDocCollection
     required_proteus = True
 except:
     required_proteus = False
 
 try:
-    from gal import GalCollection
+    from .gal import GalCollection
     required_trytond = True
 except:
     required_trytond = False

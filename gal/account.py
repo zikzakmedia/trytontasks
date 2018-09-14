@@ -6,7 +6,7 @@ import random
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from trytond.pool import Pool
-from utils import *
+from .utils import *
 
 TODAY = datetime.date.today()
 

@@ -1,6 +1,6 @@
 #This file is part of tryton-task. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-import ConfigParser
+import configparser
 import logging
 import os
 import hgapi
@@ -36,7 +36,7 @@ class bcolors:
 def read_config_file(config_file=None, type='repos', unstable=True):
     assert type in ('repos', 'servers', 'patches', 'all'), "Invalid 'type' param"
 
-    Config = ConfigParser.ConfigParser()
+    Config = configparser.ConfigParser()
     if config_file is not None:
         Config.readfp(open('./config/'+config_file))
     else:

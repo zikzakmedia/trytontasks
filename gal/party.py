@@ -3,7 +3,7 @@
 import os
 import random
 from trytond.pool import Pool
-from utils import *
+from .utils import *
 
 def create_party(name, street=None, streetbis=None, zip=None, city=None,
         subdivision_code=None, country_code='ES', phone=None, website=None,
@@ -30,7 +30,7 @@ def create_party(name, street=None, streetbis=None, zip=None, city=None,
         zip = '08' + str(random.randrange(1000)).zfill(3)
 
     default_values = Party.default_get(
-        Party._fields.keys(), with_rec_name=False)
+        list(Party._fields.keys()), with_rec_name=False)
     party = Party(**default_values)
     party.name = name
     addresses = []

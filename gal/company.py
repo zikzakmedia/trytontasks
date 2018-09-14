@@ -1,7 +1,7 @@
 #This file is part of trytontasks_gal. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 from trytond.pool import Pool
-from party import create_party
+from .party import create_party
 
 def create_company(name, currency_code='EUR'):
     """

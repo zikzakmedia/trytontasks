@@ -4,7 +4,7 @@ import datetime
 import logging
 from dateutil.relativedelta import relativedelta
 from trytond.pool import Pool
-from utils import *
+from .utils import *
 
 TODAY = datetime.date.today()
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def create_purchases(count=100, linecount=10):
         return
     terms = Term.search([])
 
-    for c in xrange(count):
+    for c in range(count):
         purchase = Purchase()
         purchase.party = random.choice(parties)
         purchase.on_change_party()
@@ -38,7 +38,7 @@ def create_purchases(count=100, linecount=10):
             purchase.payment_term = random.choice(terms)
 
         lines = []
-        for lc in xrange(random.randrange(1, linecount)):
+        for lc in range(random.randrange(1, linecount)):
             line = PurchaseLine()
             line.product = random.choice(products)
             line.quantity = random.randrange(1, 20)

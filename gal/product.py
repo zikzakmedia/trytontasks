@@ -5,7 +5,7 @@ import xmltodict
 import random
 from decimal import Decimal
 from trytond.pool import Pool
-from utils import *
+from .utils import *
 
 def create_product_category(name):
     """
@@ -57,7 +57,7 @@ def create_product(name, code="", template=None, cost_price=None,
 
     if template is None:
         default_values = ProductTemplate.default_get(
-            ProductTemplate._fields.keys(), with_rec_name=False)
+            list(ProductTemplate._fields.keys()), with_rec_name=False)
         template = ProductTemplate(**default_values)
         template.name = name
         template.default_uom = unit
@@ -168,13 +168,13 @@ def create_price_lists(language='en', count=5, productcount=10, categorycount=2)
     else:
         domain = []
     products = Product.search(domain)
-    for c in xrange(count):
+    for c in range(count):
         price_list = PriceList()
         price_list.name = price_list_name[language] +" "+ str(c)
         lines = []
 
         sequence = 1
-        for lc in xrange(random.randrange(1, productcount)):
+        for lc in range(random.randrange(1, productcount)):
             line = PriceListLine()
             line.sequence = sequence
             line.product = random.choice(products)
@@ -183,7 +183,7 @@ def create_price_lists(language='en', count=5, productcount=10, categorycount=2)
             sequence += 1
 
         if category_module:
-            for lc in xrange(random.randrange(1, categorycount)):
+            for lc in range(random.randrange(1, categorycount)):
                 line = PriceListLine()
                 line.sequence = sequence
                 line.category = random.choice(categories)

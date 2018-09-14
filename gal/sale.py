@@ -4,7 +4,7 @@ import datetime
 import logging
 from dateutil.relativedelta import relativedelta
 from trytond.pool import Pool
-from utils import *
+from .utils import *
 
 TODAY = datetime.date.today()
 logger = logging.getLogger(__name__)
@@ -34,11 +34,11 @@ def create_sales(count=100, linecount=10):
     payments = PaymentType.search([('kind', 'in', ['both', 'receivable'])])
 
     default_values = Sale.default_get(
-        Sale._fields.keys(), with_rec_name=False)
+        list(Sale._fields.keys()), with_rec_name=False)
     default_lvalues = SaleLine.default_get(
-        SaleLine._fields.keys(), with_rec_name=False)
+        list(SaleLine._fields.keys()), with_rec_name=False)
 
-    for c in xrange(count):
+    for c in range(count):
         sale = Sale(**default_values)
         sale.sale_date = random_datetime(TODAY + relativedelta(months=-12),
             TODAY)
@@ -50,7 +50,7 @@ def create_sales(count=100, linecount=10):
             sale.payment_type = random.choice(payments)
 
         lines = []
-        for lc in xrange(random.randrange(1, linecount)):
+        for lc in range(random.randrange(1, linecount)):
             line = SaleLine(**default_lvalues)
             line.product = random.choice(products)
             line.quantity = random.randrange(1, 20)

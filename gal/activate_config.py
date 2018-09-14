@@ -8,12 +8,12 @@ import logging
 from decimal import Decimal
 from blessings import Terminal
 
-from utils import get_modules
-from bank import load_bank_es
-from country import load_country_zip_es
-from company import *
-from account import *
-from electronic_mail import *
+from .utils import get_modules
+from .bank import load_bank_es
+from .country import load_country_zip_es
+from .company import *
+from .account import *
+from .electronic_mail import *
 
 def parse_arguments(arguments):
     parser = optparse.OptionParser(usage='%s [options]' % __name__)

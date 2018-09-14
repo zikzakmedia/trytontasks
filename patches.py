@@ -40,10 +40,10 @@ def _pop(force=False):
     pop = Pop(os.getcwd(), pc_dir)
     try:
         pop.unapply_all(force)
-    except QuiltError, e:
+    except QuiltError as e:
         logger.info(t.red('KO: Error applying patch:' + str(e)))
         return -1
-    except UnknownPatch, e:
+    except UnknownPatch as e:
         logger.info(t.red('KO: Error applying patch:' + str(e)))
         return -1
     logger.info(t.green('OK: All Patches removed'))
@@ -61,10 +61,10 @@ def _push(force=False, quiet=True):
     except AllPatchesApplied:
         logger.info(t.green('OK: Patches already Applied'))
         return 0
-    except QuiltError, e:
+    except QuiltError as e:
         logger.info(t.red('KO: Error applying patch:' + str(e)))
         return -1
-    except UnknownPatch, e:
+    except UnknownPatch as e:
         logger.info(t.red('KO: Error applying patch:' + str(e)))
         return -1
     logger.info(t.green('OK: All Patches Applied'))
