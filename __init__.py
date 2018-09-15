@@ -9,6 +9,7 @@ from .modules import ModulesCollection
 from .sao import SaoCollection
 from .server import ServerCollection
 from .patches import QuiltCollection
+from .database import DatabaseCollection
 
 try:
     from .userdoc import UserDocCollection
@@ -35,6 +36,7 @@ ns.add_collection(ModulesCollection)
 ns.add_collection(SaoCollection)
 ns.add_collection(ServerCollection)
 ns.add_collection(QuiltCollection)
+ns.add_collection(DatabaseCollection)
 
 if required_proteus:
     ns.add_collection(UserDocCollection)
