@@ -5,7 +5,7 @@ import xmltodict
 import random
 from decimal import Decimal
 from trytond.pool import Pool
-from .utils import *
+from utils import *
 
 def create_product_category(name):
     """
@@ -24,6 +24,51 @@ def create_product_categories(count=20):
         category = Category(name=name)
         category.save()
 
+def create_account_category():
+    """
+    Creates product category with the supplied name.
+    """
+    Category = Pool().get('product.category')
+    Account = Pool().get('account.account')
+    Tax = Pool().get('account.tax')
+
+    expense, = Account.search([
+        ('kind', '=', 'expense'),
+        ], limit=1)
+    revenue, = Account.search([
+        ('kind', '=', 'revenue'),
+        ], limit=1)
+
+    if module_installed('account_es'):
+        tax, = Tax.search([
+                ('template', '=',
+                    get_object('account_es', 'iva_rep_21').id)
+                ])
+        customer_taxes = [tax]
+        tax, = Tax.search([
+                ('template', '=',
+                    get_object('account_es', 'iva_sop_21').id)
+                ])
+        supplier_taxes = [tax]
+    elif module_installed('account_product'):
+        taxes = Tax.search([], limit=1)
+        if taxes:
+            tax, = taxes
+            customer_taxes = [tax]
+        taxes = Tax.search([], limit=1)
+        if taxes:
+            tax, = taxes
+            supplier_taxes = [tax]
+
+    category = Category(name='Account Category')
+    category.accounting = True
+    category.account_expense = expense
+    category.account_revenue = revenue
+    category.customer_taxes = customer_taxes
+    category.supplier_taxes = supplier_taxes
+    category.save()
+    return category
+
 def create_product(name, code="", template=None, cost_price=None,
         list_price=None, type='goods', unit=None, consumable=False):
     """
@@ -34,8 +79,7 @@ def create_product(name, code="", template=None, cost_price=None,
     ProductTemplate = Pool().get('product.template')
     Category = Pool().get('product.category')
 
-    if module_installed('account'):
-        Tax = Pool().get('account.tax')
+    account_category = True if module_installed('account_product') else False
 
     categories = Category.search([])
     category = None
@@ -67,55 +111,15 @@ def create_product(name, code="", template=None, cost_price=None,
         template.cost_price = cost_price
         template.categories = [category]
 
+        if account_category:
+            template.account_category = create_account_category()
+
         if hasattr(template, 'salable'):
             template.salable = True
             template.sale_uom = unit
         if hasattr(template, 'purchasable'):
             template.purchasable = True
             template.purchase_uom = unit
-
-        if (hasattr(template, 'account_expense')
-                or hasattr(template, 'account_revenue')):
-            Company = Pool().get('company.company')
-            company = Company(1)
-            template.accounts_category = False
-            template.taxes_category = False
-        if hasattr(template, 'account_expense'):
-            Account = Pool().get('account.account')
-            expense = Account.search([
-                ('kind', '=', 'expense'),
-                ('company', '=', company.id),
-                ])
-            if expense:
-                template.account_expense = expense[0]
-        if hasattr(template, 'account_revenue'):
-            Account = Pool().get('account.account')
-            revenue = Account.search([
-                ('kind', '=', 'revenue'),
-                ('company', '=', company.id),
-                ])
-            if revenue:
-                template.account_revenue = revenue[0]
-        if module_installed('account_es'):
-            tax, = Tax.search([
-                    ('template', '=',
-                        get_object('account_es', 'iva_rep_21').id)
-                    ])
-            template.customer_taxes = [tax]
-            tax, = Tax.search([
-                    ('template', '=',
-                        get_object('account_es', 'iva_sop_21').id)
-                    ])
-            template.supplier_taxes = [tax]
-        elif module_installed('account_product'):
-            taxes = Tax.search([], limit=1)
-            if taxes:
-                tax, = taxes
-                template.customer_taxes = [tax]
-            taxes = Tax.search([], limit=1)
-            if taxes:
-                tax, = taxes
-                template.supplier_taxes = [tax]
 
         product = Product()
         product.code = code
@@ -135,7 +139,7 @@ def create_products(count=400):
     """
     gal_dir = os.path.dirname(os.path.realpath(__file__))
 
-    with open(gal_dir + '/product-catalog.xml', 'r') as f:
+    with open(gal_dir + '/product-catalog.xml', 'r', encoding='utf-8') as f:
         xml = xmltodict.parse(f.read())
     i = 0
     for item in xml.get('ICECAT-interface').get('files.index').get('file'):

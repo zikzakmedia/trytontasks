@@ -6,7 +6,7 @@ import random
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from trytond.pool import Pool
-from .utils import *
+from utils import *
 
 TODAY = datetime.date.today()
 
@@ -76,7 +76,7 @@ def create_account_chart(company=None, module=None, fs_id=None, digits=None):
         domain = [('party.name', '=', company),]
     else:
         domain =[]
-    company, = Company.search(domain)
+    company, = Company.search(domain, limit=1)
 
     session_id, _, _ = CreateChart.create()
     create_chart = CreateChart(session_id)

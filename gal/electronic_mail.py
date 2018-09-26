@@ -11,11 +11,14 @@ def get_templates():
 
 def load_lang_tpl(lang, template):
     tpl_dir = 'tasks/gal/electronic_mail'
-
-    name = open(tpl_dir+'/'+template['name']+'_'+lang+'.txt', 'r').read()[:-1]
-    subject = open(tpl_dir+'/'+template['subject']+'_'+lang+'.txt', 'r').read()[:-1]
-    plain = open(tpl_dir+'/'+template['plain']+'_'+lang+'.txt', 'r').read()[:-1]
-    html = open(tpl_dir+'/'+template['html']+'_'+lang+'.txt', 'r').read()[:-1]
+    with open(tpl_dir+'/'+template['name']+'_'+lang+'.txt', 'r', encoding='utf-8') as fp:
+        name = fp.read()[:-1]
+    with open(tpl_dir+'/'+template['subject']+'_'+lang+'.txt', 'r', encoding='utf-8') as fp:
+        subject = fp.read()[:-1]
+    with open(tpl_dir+'/'+template['plain']+'_'+lang+'.txt', 'r', encoding='utf-8') as fp:
+        plain =  fp.read()[:-1]
+    with open(tpl_dir+'/'+template['html']+'_'+lang+'.txt', 'r', encoding='utf-8') as fp:
+        html = fp.read()[:-1]
     return name, subject, plain, html
 
 def create_email_templates():
