@@ -4,7 +4,7 @@ import datetime
 import logging
 from dateutil.relativedelta import relativedelta
 from trytond.pool import Pool
-from .utils import *
+from utils import *
 
 TODAY = datetime.date.today()
 logger = logging.getLogger(__name__)

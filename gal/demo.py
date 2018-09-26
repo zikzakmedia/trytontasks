@@ -8,15 +8,15 @@ import logging
 from decimal import Decimal
 from blessings import Terminal
 
-from .utils import get_modules
-from .party import *
-from .product import *
-from .sale import *
-from .sale_opportunity import *
-from .purchase import *
-from .production import *
-from .stock import *
-from .account import *
+from utils import get_modules
+from party import *
+from product import *
+from sale import *
+from sale_opportunity import *
+from purchase import *
+from production import *
+from stock import *
+from account import *
 
 def parse_arguments(arguments):
     parser = optparse.OptionParser(usage='%s [options]' % __name__)

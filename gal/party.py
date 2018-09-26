@@ -3,7 +3,7 @@
 import os
 import random
 from trytond.pool import Pool
-from .utils import *
+from utils import *
 
 def create_party(name, street=None, streetbis=None, zip=None, city=None,
         subdivision_code=None, country_code='ES', phone=None, website=None,
@@ -33,17 +33,21 @@ def create_party(name, street=None, streetbis=None, zip=None, city=None,
         list(Party._fields.keys()), with_rec_name=False)
     party = Party(**default_values)
     party.name = name
+
     addresses = []
-    addresses.append(
-        Address(
-            name=address_name,
-            street=street,
-            zip=zip,
-            city=city,
-            country=country,
-            subdivision=subdivision)
-        )
+    address = Address(
+        name=address_name,
+        street=street,
+        zip=zip,
+        city=city,
+        country=country,
+        subdivision=subdivision)
+    if module_installed('sale'):
+        address.delivery = True
+        address.invoice = True
+    addresses.append(address)
     party.addresses = addresses
+
     contact_mechanisms = []
     if phone:
         contact_mechanisms.append(
@@ -101,17 +105,17 @@ def create_parties(count=1000):
     """
     gal_dir = os.path.dirname(os.path.realpath(__file__))
 
-    with open(gal_dir + '/party-companies.txt', 'r') as f:
+    with open(gal_dir + '/party-companies.txt', 'r', encoding='utf-8') as f:
         companies = f.read().split('\n')
     companies = [x.strip() for x in companies if x.strip()]
     companies = random.sample(companies, min(len(companies), count))
-    with open(gal_dir + '/party-streets.txt', 'r') as f:
+    with open(gal_dir + '/party-streets.txt', 'r', encoding='utf-8') as f:
         streets = f.read().split('\n')
     streets = [x.strip() for x in streets if x.strip()]
-    with open(gal_dir + '/party-names.txt', 'r') as f:
+    with open(gal_dir + '/party-names.txt', 'r', encoding='utf-8') as f:
         names = f.read().split('\n')
     names = [x.strip() for x in names if x.strip()]
-    with open(gal_dir + '/party-surnames.txt', 'r') as f:
+    with open(gal_dir + '/party-surnames.txt', 'r', encoding='utf-8') as f:
         surnames = f.read().split('\n')
     surnames = [x.strip() for x in surnames if x.strip()]
     phones = ['93', '972', '973', '977', '6', '900']

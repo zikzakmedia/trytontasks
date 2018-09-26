@@ -3,8 +3,8 @@
 import datetime
 from dateutil.relativedelta import relativedelta
 from trytond.pool import Pool
-from .utils import *
-from .party import create_party
+from utils import *
+from party import create_party
 
 TODAY = datetime.date.today()
 

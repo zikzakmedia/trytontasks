@@ -7,7 +7,7 @@ import os
 import logging
 from decimal import Decimal
 from blessings import Terminal
-from .utils import get_modules
+from utils import get_modules
 
 def parse_arguments(arguments):
     parser = optparse.OptionParser(usage='%s [options]' % __name__)
