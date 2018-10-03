@@ -4,6 +4,7 @@ import configparser
 import logging
 import os
 import hgapi
+import yaml
 from invoke import Collection, task
 from blessings import Terminal
 from multiprocessing import Process
@@ -278,6 +279,43 @@ def fetch(ctx):
 
     logger.info(t.bold('Fetched.'))
 
+@task
+def missing(ctx):
+    '''Missing installed modules (activated_modules.yml)'''
+    # activated_modules.yml:
+    # activated:
+    #   - module name
+
+    if not os.path.isfile('activated_modules.yml'):
+        logger.error('Not found activated_modules.yml file')
+        return
+
+    # available modules
+    Config = read_config_file()
+    modules = Config.sections()
+    modules.sort()
+
+    # installed modules
+    activated = yaml.load(open('activated_modules.yml', 'r').read())
+    modules_activated = activated.get('activated')
+
+    # to unistall
+    upgrades = yaml.load(open('upgrades/config.yml', 'r').read())
+    modules_touninstall = upgrades.get('to_uninstall')
+    if os.path.isfile('upgrade.yml'):
+        override = yaml.load(open('upgrade.yml', 'r').read())
+        modules_touninstall += override.get('to_uninstall', [])
+
+    missing = []
+    for module in modules_activated:
+        if module in modules_touninstall:
+            continue
+        if module not in modules:
+            missing.append(module)
+
+    logger.info('Missing modules:')
+    logger.info(' '.join(missing))
+
 # Add Invoke Collections
 ModulesCollection = Collection('modules')
 ModulesCollection.add_task(info)
@@ -287,3 +325,4 @@ ModulesCollection.add_task(branches)
 ModulesCollection.add_task(forgotten)
 ModulesCollection.add_task(tests)
 ModulesCollection.add_task(fetch)
+ModulesCollection.add_task(missing)
