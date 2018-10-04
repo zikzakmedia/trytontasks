@@ -5,7 +5,7 @@ genshi
 choice
 python-sql>=0.9
 python-quilt
-yaml
+PyYAML
 
 # gal
 xmltodict
