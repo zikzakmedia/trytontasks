@@ -112,6 +112,10 @@ def configuration(ctx, name=None):
         with open('etc/apache2/sites-enabled/%s.conf' % name, 'w') as f:
             f.write(apache2_site_enabled)
 
+        tmpl = loader.load('server.sh', cls=NewTextTemplate)
+        server = tmpl.generate(**vals).render()
+        with open('etc/server.sh', 'w') as f:
+            f.write(server)
 
     logger.info(t.bold('Created configuration files'))
 
