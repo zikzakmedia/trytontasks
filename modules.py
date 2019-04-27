@@ -118,7 +118,7 @@ def _hg_branches(module, path, config_branch=None):
 @task(help={
     'config': 'Configuration file: config.cfg',
     'branch': 'Repo branch. Default is "default"',
-    'master': 'If not is true, source repo is from hg.zzsaas.com'
+    'master': 'If not is true, source repo is from hg.zikzakmedia.com'
     })
 def clone(ctx, config=None, branch=None, master=False):
     '''Clone trytond modules'''
