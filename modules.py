@@ -4,12 +4,13 @@ import configparser
 import logging
 import os
 import hgapi
+import git
 import yaml
 from invoke import Collection, task
 from blessings import Terminal
 from multiprocessing import Process
 from sql import Table
-from .scm import hg_clone, hg_update
+from .scm import hg_clone, hg_update, git_clone, git_update
 from .tools import wait_processes, set_context
 from . import patches
 
@@ -115,6 +116,35 @@ def _hg_branches(module, path, config_branch=None):
 
     logger.info(msg)
 
+def _git_branches(module, path, config_branch=None):
+    repo = git.Repo(path)
+    branches = repo.git.branch('-a')
+    branches = [x.replace('remotes/origin/','').replace('*','').strip()
+        for x in branches.split('\n') if 'HEAD' not in x]
+    active = branches[0]
+    b = []
+    branches = list(set(branches))
+    branches.sort()
+    branches.reverse()
+    for branch in branches:
+        br = branch
+        if branch == active:
+            br = "*" + br
+        if branch == config_branch:
+            br = "[" + br + "]"
+        b.append(br)
+
+    msg = str.ljust(module, 40, ' ') + "\t".join(b)
+
+    if "[*" in msg:
+        msg = bcolors.OKGREEN + msg + bcolors.ENDC
+    elif "\t[" in msg or '\t*' in msg:
+        msg = bcolors.FAIL + msg + bcolors.ENDC
+    else:
+        msg = bcolors.WARN + msg + bcolors.ENDC
+
+    logger.info(msg)
+
 @task(help={
     'config': 'Configuration file: config.cfg',
     'branch': 'Repo branch. Default is "default"',
@@ -144,7 +174,7 @@ def clone(ctx, config=None, branch=None, master=False):
 
         logger.info( "Adding Module " + t.bold(module) + " to clone")
 
-        func = hg_clone
+        func = hg_clone if repo == 'hg' else git_clone
         p = Process(target=func, args=(url, repo_path, mod_branch, master))
         p.start()
         processes.append(p)
@@ -178,7 +208,7 @@ def update(ctx, config=None, module=None):
 
         logger.info( "Adding Module " + t.bold(module) + " to update")
 
-        func = hg_update
+        func = hg_update if repo == 'hg' else git_update
         p = Process(target=func, args=(repo_path,))
         p.start()
         processes.append(p)
@@ -205,7 +235,10 @@ def branches(ctx, config=None, module=None):
 
         repo_path = os.path.join(path, module)
 
-        _hg_branches(module, repo_path, branch)
+        if repo == 'hg':
+            _hg_branches(module, repo_path, branch)
+        else:
+            _git_branches(module, repo_path, branch)
 
 @task
 def forgotten(ctx, database, config_file=os.environ.get('TRYTOND_CONFIG')):

@@ -1,5 +1,6 @@
 invoke>=1.0.0
 hgapi
+GitPython>=0.3.2.RC1
 blessings
 genshi
 choice

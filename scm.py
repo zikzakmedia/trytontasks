@@ -1,6 +1,8 @@
 #This file is part of trytontasks_scm. The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
+from invoke import run
 import hgapi
+import git
 import logging
 import os
 from blessings import Terminal
@@ -70,3 +72,37 @@ def hg_update(path):
         return -1
 
     logger.info("Repo " + t.bold(path) + t.green(" Updated"))
+
+def git_clone(url, path, branch="master", revision="master"):
+    git.Repo.clone_from(url, path, branch=branch)
+    print("Repo " + t.bold(path) + t.green(" Cloned"))
+    return 0
+
+def git_update(path):
+    path_repo = os.path.join(path)
+    if not os.path.exists(path_repo):
+        if ignore_missing:
+            return 0
+        logger.info("Missing repositori: %s" % path_repo)
+        return -1
+
+    cwd = os.getcwd()
+    os.chdir(path_repo)
+
+    cmd = ['git', 'pull']
+    result = run(' '.join(cmd), warn=True, hide='both')
+
+    if not result.ok:
+        logger.info("KO update repositori: %s" % path_repo)
+        os.chdir(cwd)
+        return -1
+
+    # If git outputs 'Already up-to-date' do not print anything.
+    if ('Already up to date' in result.stdout
+            or 'Already up-to-date' in result.stdout):
+        os.chdir(cwd)
+        return 0
+
+    logger.info("Update repositori: %s" % result.stdout)
+    os.chdir(cwd)
+    return 0
