@@ -13,7 +13,7 @@ __all__ = ['install', 'grunt']
 @task
 def install(ctx):
     'Install SAO'
-    os.chdir('public_data/sao')
+    os.chdir('sao')
     os.system('npm install')
     os.system('bower install')
 
@@ -22,7 +22,7 @@ def install(ctx):
 @task
 def grunt(ctx):
     'Grunt SAO'
-    os.chdir('public_data/sao')
+    os.chdir('sao')
     os.system('grunt')
 
     logger.info(t.bold('Done'))
